@@ -13,7 +13,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <StackLayout Orientation="Horizontal">
+        <StackLayout Orientation="Horizontal" Spacing="10" Margin="50, 10">
             <Button Text="Зберегти" Clicked="SaveButton_Clicked" />
             <Button Text="Прочитати" Clicked="ReadButton_Clicked" />
             <Button Text="Вийти" Clicked="ExitButton_Clicked" />
@@ -24,9 +24,9 @@
             <Button Text="Додати рядок" Clicked="AddRowButton_Clicked" />
             <Button Text="Додати стовпчик" Clicked="AddColumnButton_Clicked" />
         </StackLayout>
-        <Entry x:Name="textInput" Placeholder="Введіть текст" Grid.Row="1"
+        <Entry x:Name="textInput" Placeholder="Введіть текст" Grid.Row="1" Margin="50, 0, 50, 10"
                Grid.ColumnSpan="2" />
-        <ScrollView Grid.Row="2" Grid.ColumnSpan="2">
+        <ScrollView x:Name="scrollView" Orientation="Both" Grid.Row="2" Grid.ColumnSpan="2">
             <Grid x:Name="grid">
             </Grid>
         </ScrollView>
