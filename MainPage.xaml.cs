@@ -1,4 +1,5 @@
-﻿using Grid = Microsoft.Maui.Controls.Grid;
+﻿using Microsoft.Maui.Controls.Internals;
+using Grid = Microsoft.Maui.Controls.Grid;
 
 namespace Lab1;
 
@@ -30,12 +31,12 @@ public partial class MainPage : ContentPage
                 continue;
             }
 
-            var label = new Label
-            {
-                Text = GetColumnName(col),
-                VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.Center
-            };
+            var label = NewLabel(GetColumnName(col));
+
+            // Double click recognition for row width adjustment.
+            var tapGesture = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
+            tapGesture.Tapped += (_, _) => AdjustColumnWidth(col + 1);
+            label.GestureRecognizers.Add(tapGesture);
 
             Grid.SetRow(label, 0);
             Grid.SetColumn(label, col);
@@ -49,12 +50,7 @@ public partial class MainPage : ContentPage
         {
             grid.RowDefinitions.Add(new RowDefinition());
 
-            var label = new Label
-            {
-                Text = (row + 1).ToString(),
-                VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.Center
-            };
+            var label = NewLabel((row + 1).ToString());
 
             Grid.SetRow(label, row + 1);
             Grid.SetColumn(label, 0);
@@ -62,12 +58,7 @@ public partial class MainPage : ContentPage
 
             for (int col = 0; col < CountColumn; col++)
             {
-                var entry = new Entry
-                {
-                    Text = "",
-                    VerticalOptions = LayoutOptions.Center,
-                    HorizontalOptions = LayoutOptions.Center
-                };
+                var entry = NewEmptyEntry();
 
                 entry.Unfocused += Entry_Unfocused;
                 Grid.SetRow(entry, row + 1);
@@ -90,6 +81,35 @@ public partial class MainPage : ContentPage
         }
 
         return columnName;
+    }
+
+    private void AdjustColumnWidth(int columnIndex)
+    {
+        double maxWidth = 0;
+
+        // Find the maximum width of all entries in the Column.
+        for (int rowIndex = 1; rowIndex <= CountRow; rowIndex++)
+        {
+            var entry = grid.Children.FirstOrDefault(child =>
+                grid.GetRow(child) == rowIndex && grid.GetColumn(child) == columnIndex
+            ) as Entry;
+
+            if (entry != null)
+            {
+                double entryWidth = entry.Measure(double.PositiveInfinity, entry.Height).Request.Width;
+                maxWidth = Math.Max(maxWidth, entryWidth);
+            }
+        }
+
+        if (columnIndex < grid.ColumnDefinitions.Count)
+        {
+            grid.ColumnDefinitions[columnIndex].Width = new GridLength(maxWidth, GridUnitType.Absolute);
+        }
+
+        // Trigger a layout update to immediately apply the new widths.
+        Device.BeginInvokeOnMainThread(() => {
+            grid.InvalidateMeasureNonVirtual(InvalidationTrigger.MeasureChanged);
+        });
     }
 
     private void Entry_Unfocused(object sender, FocusEventArgs e)
@@ -117,7 +137,7 @@ public partial class MainPage : ContentPage
 
     private async void ExitButton_Clicked(object sender, EventArgs e)
     {
-        bool answer = await DisplayAlert("Confirmation", "Do you really want to exit?", "Yes", "No");
+        bool answer = await DisplayAlert("Підтвердження", "Ви дійсно хочете вийти?", "Так", "Ні");
 
         if (answer)
         {
@@ -127,7 +147,7 @@ public partial class MainPage : ContentPage
 
     private async void HelpButton_Clicked(object sender, EventArgs e)
     {
-        await DisplayAlert("Help ME", "Lab work 1. Levochko Antont", "OK");
+        await DisplayAlert("Довідка", "Лабораторна робота 1. Студента Левочко Антон", "ОК");
     }
 
     private void DeleteRowButton_Clicked(object sender, EventArgs e)
@@ -171,12 +191,7 @@ public partial class MainPage : ContentPage
         grid.RowDefinitions.Add(new RowDefinition());
 
         // Add label for the row number
-        var label = new Label
-        {
-            Text = newRow.ToString(),
-            VerticalOptions = LayoutOptions.Center,
-            HorizontalOptions = LayoutOptions.Center
-        };
+        var label = NewLabel(newRow.ToString());
 
         Grid.SetRow(label, newRow);
         Grid.SetColumn(label, 0);
@@ -185,12 +200,7 @@ public partial class MainPage : ContentPage
         // Add entry cells for the new row
         for (int col = 0; col < CountColumn; col++)
         {
-            var entry = new Entry
-            {
-                Text = "",
-                VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.Center
-            };
+            var entry = NewEmptyEntry();
             entry.Unfocused += Entry_Unfocused;
 
             Grid.SetRow(entry, newRow);
@@ -207,12 +217,7 @@ public partial class MainPage : ContentPage
         grid.ColumnDefinitions.Add(new ColumnDefinition());
 
         // Add label for the column name
-        var label = new Label
-        {
-            Text = GetColumnName(newColumn),
-            VerticalOptions = LayoutOptions.Center,
-            HorizontalOptions = LayoutOptions.Center
-        };
+        var label = NewLabel(GetColumnName(newColumn));
 
         Grid.SetRow(label, 0);
         Grid.SetColumn(label, newColumn);
@@ -221,17 +226,40 @@ public partial class MainPage : ContentPage
         // Add entry cells for the new column
         for (int row = 0; row < CountRow; row++)
         {
-            var entry = new Entry
-            {
-                Text = "",
-                VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.Center
-            };
+            var entry = NewEmptyEntry();
 
             entry.Unfocused += Entry_Unfocused;
             Grid.SetRow(entry, row + 1);
             Grid.SetColumn(entry, newColumn);
             grid.Children.Add(entry);
         }
+    }
+
+    private Entry NewEmptyEntry()
+    {
+        return new Entry
+        {
+            Text = "",
+            VerticalOptions = LayoutOptions.Center,
+            HorizontalOptions = LayoutOptions.Fill,
+            MinimumWidthRequest = 100
+        };
+    }
+
+    private Label NewLabel(string name)
+    {
+        return new Label
+        {
+            Text = name,
+
+            VerticalOptions = LayoutOptions.Center,
+            HorizontalOptions = LayoutOptions.Center,
+
+            MinimumWidthRequest = 50,
+            MinimumHeightRequest = 40,
+
+            HorizontalTextAlignment = TextAlignment.Center,
+            VerticalTextAlignment = TextAlignment.Center
+        };
     }
 }
