@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from Calc.g4 by ANTLR 4.13.2
+// Generated from ./GridCalculator/Grammar/Calc.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -97,14 +97,10 @@ public partial class CalcParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_expression; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.EnterExpression(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.ExitExpression(this);
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICalcVisitor<TResult> typedVisitor = visitor as ICalcVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExpression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -113,25 +109,20 @@ public partial class CalcParser : Parser {
 		ExpressionContext _localctx = new ExpressionContext(Context, State);
 		EnterRule(_localctx, 0, RULE_expression);
 		try {
-			State = 11;
+			State = 10;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,0,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
+				State = 8;
+				binaryExpression();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 9;
-				binaryExpression();
-				}
-				break;
-			case 3:
-				EnterOuterAlt(_localctx, 3);
-				{
-				State = 10;
 				unaryExpression();
 				}
 				break;
@@ -164,14 +155,10 @@ public partial class CalcParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_binaryExpression; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.EnterBinaryExpression(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.ExitBinaryExpression(this);
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICalcVisitor<TResult> typedVisitor = visitor as ICalcVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBinaryExpression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -181,20 +168,15 @@ public partial class CalcParser : Parser {
 		EnterRule(_localctx, 2, RULE_binaryExpression);
 		int _la;
 		try {
-			State = 22;
+			State = 20;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 14;
+				State = 12;
 				_localctx.left = unaryExpression();
-				State = 15;
+				State = 13;
 				_localctx.op = TokenStream.LT(1);
 				_la = TokenStream.LA(1);
 				if ( !(_la==T__0 || _la==T__1) ) {
@@ -204,16 +186,16 @@ public partial class CalcParser : Parser {
 					ErrorHandler.ReportMatch(this);
 				    Consume();
 				}
-				State = 16;
+				State = 14;
 				_localctx.right = unaryExpression();
 				}
 				break;
-			case 3:
-				EnterOuterAlt(_localctx, 3);
+			case 2:
+				EnterOuterAlt(_localctx, 2);
 				{
-				State = 18;
+				State = 16;
 				_localctx.left = unaryExpression();
-				State = 19;
+				State = 17;
 				_localctx.op = TokenStream.LT(1);
 				_la = TokenStream.LA(1);
 				if ( !(_la==T__2 || _la==T__3) ) {
@@ -223,7 +205,7 @@ public partial class CalcParser : Parser {
 					ErrorHandler.ReportMatch(this);
 				    Consume();
 				}
-				State = 20;
+				State = 18;
 				_localctx.right = unaryExpression();
 				}
 				break;
@@ -252,14 +234,10 @@ public partial class CalcParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_unaryExpression; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.EnterUnaryExpression(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.ExitUnaryExpression(this);
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICalcVisitor<TResult> typedVisitor = visitor as ICalcVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUnaryExpression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -269,46 +247,32 @@ public partial class CalcParser : Parser {
 		EnterRule(_localctx, 4, RULE_unaryExpression);
 		int _la;
 		try {
-			int _alt;
-			State = 32;
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 25;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,3,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
+			_la = TokenStream.LA(1);
+			while (_la==T__2 || _la==T__3) {
 				{
+				{
+				State = 22;
+				_localctx.op = TokenStream.LT(1);
+				_la = TokenStream.LA(1);
+				if ( !(_la==T__2 || _la==T__3) ) {
+					_localctx.op = ErrorHandler.RecoverInline(this);
 				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 28;
+				else {
+					ErrorHandler.ReportMatch(this);
+				    Consume();
+				}
+				}
+				}
+				State = 27;
 				ErrorHandler.Sync(this);
-				_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
-				while ( _alt!=2 && _alt!=global::Antlr4.Runtime.Atn.ATN.INVALID_ALT_NUMBER ) {
-					if ( _alt==1 ) {
-						{
-						{
-						State = 25;
-						_localctx.op = TokenStream.LT(1);
-						_la = TokenStream.LA(1);
-						if ( !(_la==T__2 || _la==T__3) ) {
-							_localctx.op = ErrorHandler.RecoverInline(this);
-						}
-						else {
-							ErrorHandler.ReportMatch(this);
-						    Consume();
-						}
-						}
-						} 
-					}
-					State = 30;
-					ErrorHandler.Sync(this);
-					_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
-				}
-				State = 31;
-				_localctx.right = term();
-				}
-				break;
+				_la = TokenStream.LA(1);
+			}
+			State = 28;
+			_localctx.right = term();
 			}
 		}
 		catch (RecognitionException re) {
@@ -334,14 +298,10 @@ public partial class CalcParser : Parser {
 		}
 		public override int RuleIndex { get { return RULE_term; } }
 		[System.Diagnostics.DebuggerNonUserCode]
-		public override void EnterRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.EnterTerm(this);
-		}
-		[System.Diagnostics.DebuggerNonUserCode]
-		public override void ExitRule(IParseTreeListener listener) {
-			ICalcListener typedListener = listener as ICalcListener;
-			if (typedListener != null) typedListener.ExitTerm(this);
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICalcVisitor<TResult> typedVisitor = visitor as ICalcVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTerm(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -350,40 +310,31 @@ public partial class CalcParser : Parser {
 		TermContext _localctx = new TermContext(Context, State);
 		EnterRule(_localctx, 6, RULE_term);
 		try {
-			State = 41;
+			State = 36;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
-			case T__0:
-			case T__1:
-			case T__2:
-			case T__3:
-			case T__5:
+			case T__4:
 				EnterOuterAlt(_localctx, 1);
 				{
-				}
-				break;
-			case T__4:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 35;
+				State = 30;
 				Match(T__4);
-				State = 36;
+				State = 31;
 				expression();
-				State = 37;
+				State = 32;
 				Match(T__5);
 				}
 				break;
 			case NUMBER:
-				EnterOuterAlt(_localctx, 3);
+				EnterOuterAlt(_localctx, 2);
 				{
-				State = 39;
+				State = 34;
 				Match(NUMBER);
 				}
 				break;
 			case CellPointer:
-				EnterOuterAlt(_localctx, 4);
+				EnterOuterAlt(_localctx, 3);
 				{
-				State = 40;
+				State = 35;
 				Match(CellPointer);
 				}
 				break;
@@ -403,20 +354,17 @@ public partial class CalcParser : Parser {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,9,44,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,3,0,12,8,0,1,1,1,
-		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,23,8,1,1,2,1,2,5,2,27,8,2,10,2,12,2,
-		30,9,2,1,2,3,2,33,8,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,3,3,42,8,3,1,3,0,0,4,
-		0,2,4,6,0,2,1,0,1,2,1,0,3,4,48,0,11,1,0,0,0,2,22,1,0,0,0,4,32,1,0,0,0,
-		6,41,1,0,0,0,8,12,1,0,0,0,9,12,3,2,1,0,10,12,3,4,2,0,11,8,1,0,0,0,11,9,
-		1,0,0,0,11,10,1,0,0,0,12,1,1,0,0,0,13,23,1,0,0,0,14,15,3,4,2,0,15,16,7,
-		0,0,0,16,17,3,4,2,0,17,23,1,0,0,0,18,19,3,4,2,0,19,20,7,1,0,0,20,21,3,
-		4,2,0,21,23,1,0,0,0,22,13,1,0,0,0,22,14,1,0,0,0,22,18,1,0,0,0,23,3,1,0,
-		0,0,24,33,1,0,0,0,25,27,7,1,0,0,26,25,1,0,0,0,27,30,1,0,0,0,28,26,1,0,
-		0,0,28,29,1,0,0,0,29,31,1,0,0,0,30,28,1,0,0,0,31,33,3,6,3,0,32,24,1,0,
-		0,0,32,28,1,0,0,0,33,5,1,0,0,0,34,42,1,0,0,0,35,36,5,5,0,0,36,37,3,0,0,
-		0,37,38,5,6,0,0,38,42,1,0,0,0,39,42,5,7,0,0,40,42,5,8,0,0,41,34,1,0,0,
-		0,41,35,1,0,0,0,41,39,1,0,0,0,41,40,1,0,0,0,42,7,1,0,0,0,5,11,22,28,32,
-		41
+		4,1,9,39,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,3,0,11,8,0,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,1,1,3,1,21,8,1,1,2,5,2,24,8,2,10,2,12,2,27,9,2,1,2,1,
+		2,1,3,1,3,1,3,1,3,1,3,1,3,3,3,37,8,3,1,3,0,0,4,0,2,4,6,0,2,1,0,1,2,1,0,
+		3,4,39,0,10,1,0,0,0,2,20,1,0,0,0,4,25,1,0,0,0,6,36,1,0,0,0,8,11,3,2,1,
+		0,9,11,3,4,2,0,10,8,1,0,0,0,10,9,1,0,0,0,11,1,1,0,0,0,12,13,3,4,2,0,13,
+		14,7,0,0,0,14,15,3,4,2,0,15,21,1,0,0,0,16,17,3,4,2,0,17,18,7,1,0,0,18,
+		19,3,4,2,0,19,21,1,0,0,0,20,12,1,0,0,0,20,16,1,0,0,0,21,3,1,0,0,0,22,24,
+		7,1,0,0,23,22,1,0,0,0,24,27,1,0,0,0,25,23,1,0,0,0,25,26,1,0,0,0,26,28,
+		1,0,0,0,27,25,1,0,0,0,28,29,3,6,3,0,29,5,1,0,0,0,30,31,5,5,0,0,31,32,3,
+		0,0,0,32,33,5,6,0,0,33,37,1,0,0,0,34,37,5,7,0,0,35,37,5,8,0,0,36,30,1,
+		0,0,0,36,34,1,0,0,0,36,35,1,0,0,0,37,7,1,0,0,0,4,10,20,25,36
 	};
 
 	public static readonly ATN _ATN =
