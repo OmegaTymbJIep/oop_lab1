@@ -13,7 +13,7 @@ binaryExpression
 
 // Examples: -1.2, +20, -(10 + 20), etc.
 unaryExpression
-   : op=('+'|'-')* right=term
+   : op=('+'|'-')* term
    ;
 
 term

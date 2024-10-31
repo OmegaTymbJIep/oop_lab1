@@ -224,7 +224,6 @@ public partial class CalcParser : Parser {
 
 	public partial class UnaryExpressionContext : ParserRuleContext {
 		public IToken op;
-		public TermContext right;
 		[System.Diagnostics.DebuggerNonUserCode] public TermContext term() {
 			return GetRuleContext<TermContext>(0);
 		}
@@ -272,7 +271,7 @@ public partial class CalcParser : Parser {
 				_la = TokenStream.LA(1);
 			}
 			State = 28;
-			_localctx.right = term();
+			term();
 			}
 		}
 		catch (RecognitionException re) {
