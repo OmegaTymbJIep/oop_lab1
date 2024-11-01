@@ -39,11 +39,17 @@ public interface ICalcVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExpression([NotNull] CalcParser.ExpressionContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CalcParser.binaryExpression"/>.
+	/// Visit a parse tree produced by <see cref="CalcParser.additionExpression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitBinaryExpression([NotNull] CalcParser.BinaryExpressionContext context);
+	Result VisitAdditionExpression([NotNull] CalcParser.AdditionExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CalcParser.multiplicationExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMultiplicationExpression([NotNull] CalcParser.MultiplicationExpressionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CalcParser.unaryExpression"/>.
 	/// </summary>

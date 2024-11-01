@@ -40,14 +40,15 @@ public partial class CalcParser : Parser {
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, NUMBER=7, CellPointer=8, 
 		WS=9;
 	public const int
-		RULE_expression = 0, RULE_binaryExpression = 1, RULE_unaryExpression = 2, 
-		RULE_term = 3;
+		RULE_expression = 0, RULE_additionExpression = 1, RULE_multiplicationExpression = 2, 
+		RULE_unaryExpression = 3, RULE_term = 4;
 	public static readonly string[] ruleNames = {
-		"expression", "binaryExpression", "unaryExpression", "term"
+		"expression", "additionExpression", "multiplicationExpression", "unaryExpression", 
+		"term"
 	};
 
 	private static readonly string[] _LiteralNames = {
-		null, "'*'", "'/'", "'+'", "'-'", "'('", "')'"
+		null, "'+'", "'-'", "'*'", "'/'", "'('", "')'"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, null, null, null, null, null, null, "NUMBER", "CellPointer", "WS"
@@ -85,11 +86,8 @@ public partial class CalcParser : Parser {
 	}
 
 	public partial class ExpressionContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public BinaryExpressionContext binaryExpression() {
-			return GetRuleContext<BinaryExpressionContext>(0);
-		}
-		[System.Diagnostics.DebuggerNonUserCode] public UnaryExpressionContext unaryExpression() {
-			return GetRuleContext<UnaryExpressionContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public AdditionExpressionContext additionExpression() {
+			return GetRuleContext<AdditionExpressionContext>(0);
 		}
 		public ExpressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -109,23 +107,10 @@ public partial class CalcParser : Parser {
 		ExpressionContext _localctx = new ExpressionContext(Context, State);
 		EnterRule(_localctx, 0, RULE_expression);
 		try {
+			EnterOuterAlt(_localctx, 1);
+			{
 			State = 10;
-			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,0,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
-				{
-				State = 8;
-				binaryExpression();
-				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 9;
-				unaryExpression();
-				}
-				break;
+			additionExpression();
 			}
 		}
 		catch (RecognitionException re) {
@@ -139,43 +124,44 @@ public partial class CalcParser : Parser {
 		return _localctx;
 	}
 
-	public partial class BinaryExpressionContext : ParserRuleContext {
-		public UnaryExpressionContext left;
+	public partial class AdditionExpressionContext : ParserRuleContext {
 		public IToken op;
-		public UnaryExpressionContext right;
-		[System.Diagnostics.DebuggerNonUserCode] public UnaryExpressionContext[] unaryExpression() {
-			return GetRuleContexts<UnaryExpressionContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public MultiplicationExpressionContext[] multiplicationExpression() {
+			return GetRuleContexts<MultiplicationExpressionContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public UnaryExpressionContext unaryExpression(int i) {
-			return GetRuleContext<UnaryExpressionContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public MultiplicationExpressionContext multiplicationExpression(int i) {
+			return GetRuleContext<MultiplicationExpressionContext>(i);
 		}
-		public BinaryExpressionContext(ParserRuleContext parent, int invokingState)
+		public AdditionExpressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_binaryExpression; } }
+		public override int RuleIndex { get { return RULE_additionExpression; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICalcVisitor<TResult> typedVisitor = visitor as ICalcVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitBinaryExpression(this);
+			if (typedVisitor != null) return typedVisitor.VisitAdditionExpression(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public BinaryExpressionContext binaryExpression() {
-		BinaryExpressionContext _localctx = new BinaryExpressionContext(Context, State);
-		EnterRule(_localctx, 2, RULE_binaryExpression);
+	public AdditionExpressionContext additionExpression() {
+		AdditionExpressionContext _localctx = new AdditionExpressionContext(Context, State);
+		EnterRule(_localctx, 2, RULE_additionExpression);
 		int _la;
 		try {
-			State = 20;
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 12;
+			multiplicationExpression();
+			State = 17;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
+			_la = TokenStream.LA(1);
+			while (_la==T__0 || _la==T__1) {
 				{
-				State = 12;
-				_localctx.left = unaryExpression();
+				{
+				{
 				State = 13;
 				_localctx.op = TokenStream.LT(1);
 				_la = TokenStream.LA(1);
@@ -186,16 +172,67 @@ public partial class CalcParser : Parser {
 					ErrorHandler.ReportMatch(this);
 				    Consume();
 				}
-				State = 14;
-				_localctx.right = unaryExpression();
 				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
+				State = 14;
+				multiplicationExpression();
+				}
+				}
+				State = 19;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class MultiplicationExpressionContext : ParserRuleContext {
+		public IToken op;
+		[System.Diagnostics.DebuggerNonUserCode] public UnaryExpressionContext[] unaryExpression() {
+			return GetRuleContexts<UnaryExpressionContext>();
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public UnaryExpressionContext unaryExpression(int i) {
+			return GetRuleContext<UnaryExpressionContext>(i);
+		}
+		public MultiplicationExpressionContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_multiplicationExpression; } }
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ICalcVisitor<TResult> typedVisitor = visitor as ICalcVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMultiplicationExpression(this);
+			else return visitor.VisitChildren(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public MultiplicationExpressionContext multiplicationExpression() {
+		MultiplicationExpressionContext _localctx = new MultiplicationExpressionContext(Context, State);
+		EnterRule(_localctx, 4, RULE_multiplicationExpression);
+		int _la;
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 20;
+			unaryExpression();
+			State = 25;
+			ErrorHandler.Sync(this);
+			_la = TokenStream.LA(1);
+			while (_la==T__2 || _la==T__3) {
 				{
-				State = 16;
-				_localctx.left = unaryExpression();
-				State = 17;
+				{
+				{
+				State = 21;
 				_localctx.op = TokenStream.LT(1);
 				_la = TokenStream.LA(1);
 				if ( !(_la==T__2 || _la==T__3) ) {
@@ -205,10 +242,15 @@ public partial class CalcParser : Parser {
 					ErrorHandler.ReportMatch(this);
 				    Consume();
 				}
-				State = 18;
-				_localctx.right = unaryExpression();
 				}
-				break;
+				State = 22;
+				unaryExpression();
+				}
+				}
+				State = 27;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -243,21 +285,21 @@ public partial class CalcParser : Parser {
 	[RuleVersion(0)]
 	public UnaryExpressionContext unaryExpression() {
 		UnaryExpressionContext _localctx = new UnaryExpressionContext(Context, State);
-		EnterRule(_localctx, 4, RULE_unaryExpression);
+		EnterRule(_localctx, 6, RULE_unaryExpression);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 25;
+			State = 31;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
-			while (_la==T__2 || _la==T__3) {
+			while (_la==T__0 || _la==T__1) {
 				{
 				{
-				State = 22;
+				State = 28;
 				_localctx.op = TokenStream.LT(1);
 				_la = TokenStream.LA(1);
-				if ( !(_la==T__2 || _la==T__3) ) {
+				if ( !(_la==T__0 || _la==T__1) ) {
 					_localctx.op = ErrorHandler.RecoverInline(this);
 				}
 				else {
@@ -266,11 +308,11 @@ public partial class CalcParser : Parser {
 				}
 				}
 				}
-				State = 27;
+				State = 33;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 			}
-			State = 28;
+			State = 34;
 			term();
 			}
 		}
@@ -307,33 +349,33 @@ public partial class CalcParser : Parser {
 	[RuleVersion(0)]
 	public TermContext term() {
 		TermContext _localctx = new TermContext(Context, State);
-		EnterRule(_localctx, 6, RULE_term);
+		EnterRule(_localctx, 8, RULE_term);
 		try {
-			State = 36;
+			State = 42;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case T__4:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 30;
+				State = 36;
 				Match(T__4);
-				State = 31;
+				State = 37;
 				expression();
-				State = 32;
+				State = 38;
 				Match(T__5);
 				}
 				break;
 			case NUMBER:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 34;
+				State = 40;
 				Match(NUMBER);
 				}
 				break;
 			case CellPointer:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 35;
+				State = 41;
 				Match(CellPointer);
 				}
 				break;
@@ -353,17 +395,19 @@ public partial class CalcParser : Parser {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,9,39,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,3,0,11,8,0,1,1,1,1,1,
-		1,1,1,1,1,1,1,1,1,1,1,3,1,21,8,1,1,2,5,2,24,8,2,10,2,12,2,27,9,2,1,2,1,
-		2,1,3,1,3,1,3,1,3,1,3,1,3,3,3,37,8,3,1,3,0,0,4,0,2,4,6,0,2,1,0,1,2,1,0,
-		3,4,39,0,10,1,0,0,0,2,20,1,0,0,0,4,25,1,0,0,0,6,36,1,0,0,0,8,11,3,2,1,
-		0,9,11,3,4,2,0,10,8,1,0,0,0,10,9,1,0,0,0,11,1,1,0,0,0,12,13,3,4,2,0,13,
-		14,7,0,0,0,14,15,3,4,2,0,15,21,1,0,0,0,16,17,3,4,2,0,17,18,7,1,0,0,18,
-		19,3,4,2,0,19,21,1,0,0,0,20,12,1,0,0,0,20,16,1,0,0,0,21,3,1,0,0,0,22,24,
-		7,1,0,0,23,22,1,0,0,0,24,27,1,0,0,0,25,23,1,0,0,0,25,26,1,0,0,0,26,28,
-		1,0,0,0,27,25,1,0,0,0,28,29,3,6,3,0,29,5,1,0,0,0,30,31,5,5,0,0,31,32,3,
-		0,0,0,32,33,5,6,0,0,33,37,1,0,0,0,34,37,5,7,0,0,35,37,5,8,0,0,36,30,1,
-		0,0,0,36,34,1,0,0,0,36,35,1,0,0,0,37,7,1,0,0,0,4,10,20,25,36
+		4,1,9,45,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,1,0,1,0,1,1,1,1,1,1,5,
+		1,16,8,1,10,1,12,1,19,9,1,1,2,1,2,1,2,5,2,24,8,2,10,2,12,2,27,9,2,1,3,
+		5,3,30,8,3,10,3,12,3,33,9,3,1,3,1,3,1,4,1,4,1,4,1,4,1,4,1,4,3,4,43,8,4,
+		1,4,0,0,5,0,2,4,6,8,0,2,1,0,1,2,1,0,3,4,44,0,10,1,0,0,0,2,12,1,0,0,0,4,
+		20,1,0,0,0,6,31,1,0,0,0,8,42,1,0,0,0,10,11,3,2,1,0,11,1,1,0,0,0,12,17,
+		3,4,2,0,13,14,7,0,0,0,14,16,3,4,2,0,15,13,1,0,0,0,16,19,1,0,0,0,17,15,
+		1,0,0,0,17,18,1,0,0,0,18,3,1,0,0,0,19,17,1,0,0,0,20,25,3,6,3,0,21,22,7,
+		1,0,0,22,24,3,6,3,0,23,21,1,0,0,0,24,27,1,0,0,0,25,23,1,0,0,0,25,26,1,
+		0,0,0,26,5,1,0,0,0,27,25,1,0,0,0,28,30,7,0,0,0,29,28,1,0,0,0,30,33,1,0,
+		0,0,31,29,1,0,0,0,31,32,1,0,0,0,32,34,1,0,0,0,33,31,1,0,0,0,34,35,3,8,
+		4,0,35,7,1,0,0,0,36,37,5,5,0,0,37,38,3,0,0,0,38,39,5,6,0,0,39,43,1,0,0,
+		0,40,43,5,7,0,0,41,43,5,8,0,0,42,36,1,0,0,0,42,40,1,0,0,0,42,41,1,0,0,
+		0,43,9,1,0,0,0,4,17,25,31,42
 	};
 
 	public static readonly ATN _ATN =
