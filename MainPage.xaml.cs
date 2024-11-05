@@ -1,17 +1,27 @@
-﻿using Microsoft.Maui.Controls.Internals;
-using Grid = Microsoft.Maui.Controls.Grid;
+﻿using System.Globalization;
+using Lab1.Services.FileSavePicker;
+using MauiGrid = Microsoft.Maui.Controls.Grid;
+using SGrid = Lab1.Grid.Grid;
 
 namespace Lab1;
 
 public partial class MainPage : ContentPage
 {
-    private const int CountColumn = 20;
-    private const int CountRow = 50;
+    private const string DefaultGridSaveFileName = "gridsave.json";
+
+    private const int MinColumnsNumber = 22;
+    private const int MinRowsNumber = 22;
+
+    private readonly SGrid _expressionsGrid;
+    private readonly GridCalculator.GridCalculator _gridCalculator;
 
     public MainPage()
     {
         InitializeComponent();
         CreateGrid();
+
+        _expressionsGrid = new SGrid(MinRowsNumber, MinColumnsNumber);
+        _gridCalculator = new GridCalculator.GridCalculator(_expressionsGrid);
     }
 
     private void CreateGrid()
@@ -22,9 +32,9 @@ public partial class MainPage : ContentPage
 
     private void AddColumnsAndColumnLabels()
     {
-        for (int col = 0; col < CountColumn + 1; col++)
+        for (var col = 0; col < MinColumnsNumber + 1; col++)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
             if (col <= 0)
             {
@@ -35,43 +45,43 @@ public partial class MainPage : ContentPage
 
             // Double click recognition for row width adjustment.
             var tapGesture = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
-            tapGesture.Tapped += (_, _) => AdjustColumnWidth(col + 1);
+            var column = col;
+            tapGesture.Tapped += (_, _) => AdjustColumnWidth(column + 1);
             label.GestureRecognizers.Add(tapGesture);
 
-            Grid.SetRow(label, 0);
-            Grid.SetColumn(label, col);
-            grid.Children.Add(label);
+            MauiGrid.SetRow(label, 0);
+            MauiGrid.SetColumn(label, col);
+            Grid.Children.Add(label);
         }
     }
 
     private void AddRowsAndCellEntries()
     {
-        for (int row = 0; row < CountRow; row++)
+        for (var row = 0; row < MinRowsNumber; row++)
         {
-            grid.RowDefinitions.Add(new RowDefinition());
+            Grid.RowDefinitions.Add(new RowDefinition());
 
             var label = NewLabel((row + 1).ToString());
 
-            Grid.SetRow(label, row + 1);
-            Grid.SetColumn(label, 0);
-            grid.Children.Add(label);
+            MauiGrid.SetRow(label, row + 1);
+            MauiGrid.SetColumn(label, 0);
+            Grid.Children.Add(label);
 
-            for (int col = 0; col < CountColumn; col++)
+            for (int col = 0; col < MinColumnsNumber; col++)
             {
                 var entry = NewEmptyEntry();
 
-                entry.Unfocused += Entry_Unfocused;
-                Grid.SetRow(entry, row + 1);
-                Grid.SetColumn(entry, col + 1);
-                grid.Children.Add(entry);
+                MauiGrid.SetRow(entry, row + 1);
+                MauiGrid.SetColumn(entry, col + 1);
+                Grid.Children.Add(entry);
             }
         }
     }
 
-    private string GetColumnName(int colIndex)
+    private static string GetColumnName(int colIndex)
     {
-        int dividend = colIndex;
-        string columnName = string.Empty;
+        var dividend = colIndex;
+        var columnName = string.Empty;
 
         while (dividend > 0)
         {
@@ -88,60 +98,124 @@ public partial class MainPage : ContentPage
         double maxWidth = 0;
 
         // Find the maximum width of all entries in the Column.
-        for (int rowIndex = 1; rowIndex <= CountRow; rowIndex++)
+        for (var rowIndex = 1; rowIndex <= MinRowsNumber; rowIndex++)
         {
-            var entry = grid.Children.FirstOrDefault(child =>
-                grid.GetRow(child) == rowIndex && grid.GetColumn(child) == columnIndex
-            ) as Entry;
+            if (Grid.Children.FirstOrDefault(child =>
+                    Grid.GetRow(child) == rowIndex && Grid.GetColumn(child) == columnIndex
+                ) is not Entry entry) continue;
 
-            if (entry != null)
-            {
-                double entryWidth = entry.Measure(double.PositiveInfinity, entry.Height).Request.Width;
-                maxWidth = Math.Max(maxWidth, entryWidth);
-            }
+            var entryWidth = entry.Measure(double.PositiveInfinity, entry.Height).Request.Width;
+
+            maxWidth = Math.Max(maxWidth, entryWidth);
         }
 
-        if (columnIndex < grid.ColumnDefinitions.Count)
+        if (columnIndex < Grid.ColumnDefinitions.Count)
         {
-            grid.ColumnDefinitions[columnIndex].Width = new GridLength(maxWidth, GridUnitType.Absolute);
+            Grid.ColumnDefinitions[columnIndex].Width = new GridLength(maxWidth, GridUnitType.Absolute);
         }
 
         // Trigger a layout update to immediately apply the new widths.
-        Device.BeginInvokeOnMainThread(() => {
-            grid.InvalidateMeasureNonVirtual(InvalidationTrigger.MeasureChanged);
+        Grid.Dispatcher.Dispatch(() => {
+            Grid.IsVisible = false;
+            Grid.IsVisible = true;
         });
     }
 
     private void Entry_Unfocused(object sender, FocusEventArgs e)
     {
         var entry = (Entry)sender;
-        var row = Grid.GetRow(entry) - 1;
-        var col = Grid.GetColumn(entry) - 1;
-        var content = entry.Text;
+
+        var column = MauiGrid.GetColumn(entry);
+        var row = MauiGrid.GetRow(entry);
+
+        if (string.IsNullOrEmpty(entry.Text))
+        {
+            _expressionsGrid[row, column] = null;
+            return;
+        }
+
+        try
+        {
+            var result = _gridCalculator.Evaluate(entry.Text);
+
+            _expressionsGrid[row, column] = entry.Text;
+
+            if (result % 1 == 0)
+            {
+                entry.Text = ((Int128)result).ToString();
+                return;
+            }
+
+            entry.Text = result.ToString(CultureInfo.InvariantCulture);
+        }
+        catch (Exception ex)
+        {
+            DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private void Entry_Focused(object sender, FocusEventArgs e)
+    {
+        var entry = (Entry)sender;
+
+        var column = MauiGrid.GetColumn(entry);
+        var row = MauiGrid.GetRow(entry);
+
+        var rawExpression = _expressionsGrid[row, column];
+        if (string.IsNullOrEmpty(rawExpression))
+        {
+            return;
+        }
+
+        entry.Text = rawExpression;
     }
 
     private void CalculateButton_Clicked(object sender, EventArgs e)
     {
-        // TODO
+        try
+        {
+            var result = _gridCalculator.Evaluate(TextInput.Text);
+            Console.WriteLine(result);
+        }
+        catch (Exception ex)
+        {
+            DisplayAlert("Error", ex.Message, "OK");
+        }
     }
 
-    private void SaveButton_Clicked(object sender, EventArgs e)
+    private async void SaveButton_Clicked(object sender, EventArgs e)
     {
-        // TODO
+        var filePath = await FileSavePicker.PickAsync(DefaultGridSaveFileName);
+        if (string.IsNullOrEmpty(filePath)) return;
+
+        var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+        _expressionsGrid.WriteToJsonStreamAsync(fileStream);
+
+        fileStream.Close();
     }
 
-    private void ReadButton_Clicked(object sender, EventArgs e)
+    private async void ReadButton_Clicked(object sender, EventArgs e)
     {
-        // TODO
+        var fileResult = await FilePicker.PickAsync();
+
+        if (fileResult == null) return;
+        if (string.IsNullOrEmpty(fileResult.FullPath)) return;
+
+        var fileStream = await fileResult.OpenReadAsync();
+        await _expressionsGrid.ReadFromJsonStreamAsync(fileStream);
+
+        fileStream.Close();
+
+        UpdateViewFromInnerGrid();
     }
 
     private async void ExitButton_Clicked(object sender, EventArgs e)
     {
-        bool answer = await DisplayAlert("Підтвердження", "Ви дійсно хочете вийти?", "Так", "Ні");
+        var answer = await DisplayAlert("Підтвердження", "Ви дійсно хочете вийти?", "Так", "Ні");
 
         if (answer)
         {
-            System.Environment.Exit(0);
+            Environment.Exit(0);
         }
     }
 
@@ -152,101 +226,105 @@ public partial class MainPage : ContentPage
 
     private void DeleteRowButton_Clicked(object sender, EventArgs e)
     {
-        if (grid.RowDefinitions.Count <= 1)
+        if (Grid.RowDefinitions.Count <= MinRowsNumber)
         {
             return;
         }
 
-        int lastRowIndex = grid.RowDefinitions.Count - 1;
-        grid.RowDefinitions.RemoveAt(lastRowIndex);
-        grid.Children.RemoveAt(lastRowIndex * (CountColumn + 1));
-        for (int col = 0; col < CountColumn; col++)
+        int lastRowIndex = Grid.RowDefinitions.Count - 1;
+        Grid.RowDefinitions.RemoveAt(lastRowIndex);
+        Grid.Children.RemoveAt(lastRowIndex * (MinColumnsNumber + 1));
+        for (int col = 0; col < MinColumnsNumber; col++)
         {
-            grid.Children.RemoveAt((lastRowIndex * CountColumn) + col + 1);
+            Grid.Children.RemoveAt(lastRowIndex * MinColumnsNumber + col + 1);
         }
     }
 
     private void DeleteColumnButton_Clicked(object sender, EventArgs e)
     {
-        if (grid.ColumnDefinitions.Count <= 1)
+        if (Grid.ColumnDefinitions.Count <= MinColumnsNumber)
         {
             return;
         }
 
-        int lastColumnIndex = grid.ColumnDefinitions.Count - 1;
-        grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
-        grid.Children.RemoveAt(lastColumnIndex);
+        var lastColumnIndex = Grid.ColumnDefinitions.Count - 1;
+        Grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
+        Grid.Children.RemoveAt(lastColumnIndex);
 
-        for (int row = 0; row < CountRow; row++)
+        for (var row = 0; row < MinRowsNumber; row++)
         {
-            grid.Children.RemoveAt(row * (CountColumn + 1) + lastColumnIndex + 1);
+            Grid.Children.RemoveAt(row * (MinColumnsNumber + 1) + lastColumnIndex + 1);
         }
     }
 
     private void AddRowButton_Clicked(object sender, EventArgs e)
     {
-        int newRow = grid.RowDefinitions.Count;
+        int newRow = Grid.RowDefinitions.Count;
 
         // Add a new row definition
-        grid.RowDefinitions.Add(new RowDefinition());
+        Grid.RowDefinitions.Add(new RowDefinition());
 
         // Add label for the row number
         var label = NewLabel(newRow.ToString());
 
-        Grid.SetRow(label, newRow);
-        Grid.SetColumn(label, 0);
-        grid.Children.Add(label);
+        MauiGrid.SetRow(label, newRow);
+        MauiGrid.SetColumn(label, 0);
+        Grid.Children.Add(label);
 
         // Add entry cells for the new row
-        for (int col = 0; col < CountColumn; col++)
+        for (var col = 0; col < MinColumnsNumber; col++)
         {
             var entry = NewEmptyEntry();
-            entry.Unfocused += Entry_Unfocused;
 
-            Grid.SetRow(entry, newRow);
-            Grid.SetColumn(entry, col + 1);
-            grid.Children.Add(entry);
+            MauiGrid.SetRow(entry, newRow);
+            MauiGrid.SetColumn(entry, col + 1);
+            Grid.Children.Add(entry);
         }
     }
 
     private void AddColumnButton_Clicked(object sender, EventArgs e)
     {
-        int newColumn = grid.ColumnDefinitions.Count;
+        int newColumn = Grid.ColumnDefinitions.Count;
 
         // Add a new column definition
-        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
         // Add label for the column name
         var label = NewLabel(GetColumnName(newColumn));
 
-        Grid.SetRow(label, 0);
-        Grid.SetColumn(label, newColumn);
-        grid.Children.Add(label);
+        MauiGrid.SetRow(label, 0);
+        MauiGrid.SetColumn(label, newColumn);
+        Grid.Children.Add(label);
 
         // Add entry cells for the new column
-        for (int row = 0; row < CountRow; row++)
+        for (int row = 0; row < MinRowsNumber; row++)
         {
             var entry = NewEmptyEntry();
 
-            entry.Unfocused += Entry_Unfocused;
-            Grid.SetRow(entry, row + 1);
-            Grid.SetColumn(entry, newColumn);
-            grid.Children.Add(entry);
+            MauiGrid.SetRow(entry, row + 1);
+            MauiGrid.SetColumn(entry, newColumn);
+            Grid.Children.Add(entry);
         }
     }
 
     private Entry NewEmptyEntry()
     {
-        return new Entry
+        var entry = new Entry
         {
             Text = "",
             VerticalOptions = LayoutOptions.Center,
             HorizontalOptions = LayoutOptions.Fill,
             MinimumWidthRequest = 100
+
         };
+
+        entry.Focused += Entry_Focused!;
+        entry.Unfocused += Entry_Unfocused!;
+
+        return entry;
     }
 
-    private Label NewLabel(string name)
+    private static Label NewLabel(string name)
     {
         return new Label
         {
@@ -261,5 +339,52 @@ public partial class MainPage : ContentPage
             HorizontalTextAlignment = TextAlignment.Center,
             VerticalTextAlignment = TextAlignment.Center
         };
+    }
+
+    private void UpdateViewFromInnerGrid()
+    {
+        foreach (var (row, column, expression) in _expressionsGrid)
+        {
+            if (string.IsNullOrEmpty(expression))
+            {
+                continue;
+            }
+
+            if (Grid.Children.FirstOrDefault(child =>
+                    Grid.GetRow(child) == row && Grid.GetColumn(child) == column
+                ) is not Entry entry) continue;
+
+            var value = expression;
+            try
+            {
+                var expressionResult = _gridCalculator.Evaluate(expression);
+
+                value = expressionResult % 1 == 0 ?
+                    ((Int128)expressionResult).ToString() :
+                    expressionResult.ToString(CultureInfo.InvariantCulture);
+            }
+            catch (Exception ex)
+            {
+                var columnString = NumberToColumn(column);
+                DisplayAlert("Error", $"${columnString}${row}: {ex.Message}", "OK");
+            }
+
+            entry.Text = value;
+        }
+    }
+
+    private static string NumberToColumn(int columnNumber)
+    {
+        var column = string.Empty;
+
+        while (columnNumber > 0)
+        {
+            columnNumber--;
+            var letter = (char)('A' + (columnNumber % 26));
+            column = letter + column;
+            columnNumber /= 26;
+        }
+
+        return column;
     }
 }
