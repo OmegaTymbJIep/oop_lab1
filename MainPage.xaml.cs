@@ -32,7 +32,7 @@ public partial class MainPage : ContentPage
 
     private void AddColumnsAndColumnLabels()
     {
-        for (var col = 0; col < MinColumnsNumber + 1; col++)
+        for (var col = 0; col < MinColumnsNumber; col++)
         {
             Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
@@ -98,7 +98,7 @@ public partial class MainPage : ContentPage
         double maxWidth = 0;
 
         // Find the maximum width of all entries in the Column.
-        for (var rowIndex = 1; rowIndex <= MinRowsNumber; rowIndex++)
+        for (var rowIndex = 1; rowIndex <= Grid.RowDefinitions.Count; rowIndex++)
         {
             if (Grid.Children.FirstOrDefault(child =>
                     Grid.GetRow(child) == rowIndex && Grid.GetColumn(child) == columnIndex
@@ -233,10 +233,15 @@ public partial class MainPage : ContentPage
 
         int lastRowIndex = Grid.RowDefinitions.Count - 1;
         Grid.RowDefinitions.RemoveAt(lastRowIndex);
-        Grid.Children.RemoveAt(lastRowIndex * (MinColumnsNumber + 1));
-        for (int col = 0; col < MinColumnsNumber; col++)
+        for (int col = 0; col < Grid.ColumnDefinitions.Count; col++)
         {
-            Grid.Children.RemoveAt(lastRowIndex * MinColumnsNumber + col + 1);
+            var element = Grid.Children
+                .FirstOrDefault(child => Grid.GetRow(child) == lastRowIndex && Grid.GetColumn(child) == col);
+
+            if (element != null)
+            {
+                Grid.Children.Remove(element);
+            }
         }
     }
 
@@ -247,13 +252,19 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        var lastColumnIndex = Grid.ColumnDefinitions.Count - 1;
-        Grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
-        Grid.Children.RemoveAt(lastColumnIndex);
+        int lastColumnIndex = Grid.ColumnDefinitions.Count - 1;
 
-        for (var row = 0; row < MinRowsNumber; row++)
+        Grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
+
+        for (int row = 0; row < Grid.RowDefinitions.Count; row++)
         {
-            Grid.Children.RemoveAt(row * (MinColumnsNumber + 1) + lastColumnIndex + 1);
+            var element = Grid.Children
+                .FirstOrDefault(child => Grid.GetRow(child) == row && Grid.GetColumn(child) == lastColumnIndex);
+
+            if (element != null)
+            {
+                Grid.Children.Remove(element);
+            }
         }
     }
 
