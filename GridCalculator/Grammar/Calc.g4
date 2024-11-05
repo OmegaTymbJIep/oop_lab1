@@ -9,7 +9,7 @@ additionExpression
    ;
 
 multiplicationExpression
-   : unaryExpression ((op=('*'|'/')) unaryExpression)*
+   : unaryExpression ((op=('*'|'/'|'%')) unaryExpression)*
    ;
 
 unaryExpression
@@ -24,6 +24,6 @@ term
 
 NUMBER: [0-9]+ ('.' [0-9]+)?;
 
-CellPointer: '$' [A-Za-z]+ '$' [0-9]+ ;
+CellPointer: '$' [A-Za-z]+ '$' [1-9] [0-9]* ;
 
 WS: [ \t\r\n]+ -> skip ;
