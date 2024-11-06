@@ -5,6 +5,7 @@ using Lab1.GridCalculator.AST;
 using Lab1.GridCalculator.AST.Expressions;
 using Lab1.GridCalculator.AST.Terms;
 using Lab1.GridCalculator.Parser;
+using CellPointer = Lab1.GridCalculator.AST.Terms.CellPointer;
 
 namespace Lab1.GridCalculator;
 
@@ -72,7 +73,7 @@ public class GridCalculator(IGrid grid)
 
     private object EvaluateCellPointer(CellPointer cellPointer)
     {
-        var cellData = grid.GetCellData(cellPointer.Row, cellPointer.Column);
+        var cellData = grid.GetCellData(cellPointer.Pointer);
         if (string.IsNullOrEmpty(cellData))
         {
             throw new InvalidOperationException($"Cell {cellPointer} is empty");

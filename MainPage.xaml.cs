@@ -1,7 +1,8 @@
 ﻿using System.Globalization;
+using Lab1.Grid;
 using Lab1.Services.FileSavePicker;
 using MauiGrid = Microsoft.Maui.Controls.Grid;
-using SGrid = Lab1.Grid.Grid;
+using ExprGrid = Lab1.Grid.Grid;
 
 namespace Lab1;
 
@@ -12,7 +13,7 @@ public partial class MainPage : ContentPage
     private const int MinColumnsNumber = 22;
     private const int MinRowsNumber = 22;
 
-    private readonly SGrid _expressionsGrid;
+    private readonly ExprGrid _exprGrid;
     private readonly GridCalculator.GridCalculator _gridCalculator;
 
     public MainPage()
@@ -20,8 +21,8 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         CreateGrid();
 
-        _expressionsGrid = new SGrid(MinRowsNumber, MinColumnsNumber);
-        _gridCalculator = new GridCalculator.GridCalculator(_expressionsGrid);
+        _exprGrid = new ExprGrid(MinRowsNumber, MinColumnsNumber);
+        _gridCalculator = new GridCalculator.GridCalculator(_exprGrid);
     }
 
     private void CreateGrid()
@@ -130,7 +131,7 @@ public partial class MainPage : ContentPage
 
         if (string.IsNullOrEmpty(entry.Text))
         {
-            _expressionsGrid[row, column] = null;
+            _exprGrid[row, column] = null;
             return;
         }
 
@@ -138,7 +139,7 @@ public partial class MainPage : ContentPage
         {
             var result = _gridCalculator.Evaluate(entry.Text);
 
-            _expressionsGrid[row, column] = entry.Text;
+            _exprGrid[row, column] = entry.Text;
 
             if (result % 1 == 0)
             {
@@ -161,7 +162,7 @@ public partial class MainPage : ContentPage
         var column = MauiGrid.GetColumn(entry);
         var row = MauiGrid.GetRow(entry);
 
-        var rawExpression = _expressionsGrid[row, column];
+        var rawExpression = _exprGrid[row, column];
         if (string.IsNullOrEmpty(rawExpression))
         {
             return;
@@ -189,7 +190,7 @@ public partial class MainPage : ContentPage
         if (string.IsNullOrEmpty(filePath)) return;
 
         var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
-        _expressionsGrid.WriteToJsonStreamAsync(fileStream);
+        _exprGrid.WriteToJsonStreamAsync(fileStream);
 
         fileStream.Close();
     }
@@ -202,7 +203,7 @@ public partial class MainPage : ContentPage
         if (string.IsNullOrEmpty(fileResult.FullPath)) return;
 
         var fileStream = await fileResult.OpenReadAsync();
-        await _expressionsGrid.ReadFromJsonStreamAsync(fileStream);
+        await _exprGrid.ReadFromJsonStreamAsync(fileStream);
 
         fileStream.Close();
 
@@ -354,7 +355,7 @@ public partial class MainPage : ContentPage
 
     private void UpdateViewFromInnerGrid()
     {
-        foreach (var (row, column, expression) in _expressionsGrid)
+        foreach (var (row, column, expression) in _exprGrid)
         {
             if (string.IsNullOrEmpty(expression))
             {
@@ -376,26 +377,11 @@ public partial class MainPage : ContentPage
             }
             catch (Exception ex)
             {
-                var columnString = NumberToColumn(column);
+                var columnString = CellPointer.NumberToColumn(column);
                 DisplayAlert("Error", $"${columnString}${row}: {ex.Message}", "OK");
             }
 
             entry.Text = value;
         }
-    }
-
-    private static string NumberToColumn(int columnNumber)
-    {
-        var column = string.Empty;
-
-        while (columnNumber > 0)
-        {
-            columnNumber--;
-            var letter = (char)('A' + (columnNumber % 26));
-            column = letter + column;
-            columnNumber /= 26;
-        }
-
-        return column;
     }
 }

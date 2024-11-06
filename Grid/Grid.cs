@@ -9,11 +9,11 @@ public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
     /// Inner grid representation: row -> (col -> value)
     private readonly Dictionary<int, Dictionary<int, string>> _inner;
 
-    /// Initializes a new instance of the <see cref="Grid"/> class
-    public Grid()
-    {
-        _inner = new Dictionary<int, Dictionary<int, string>>();
-    }
+    /// The mapping of which cells reference which other cells.
+    private readonly Dictionary<CellPointer, List<CellPointer>> _references = new();
+
+    /// The mapping of which cells are referenced by which other cells.
+    private readonly Dictionary<CellPointer, List<CellPointer>> _dependents = new();
 
     /// Initializes a new instance of the <see cref="Grid"/> class, allocating the specified number of rows and columns.
     public Grid(int rows, int columns)
@@ -123,8 +123,8 @@ public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
         return _inner.Values.Max(row => row.Keys.Max());
     }
 
-    public string? GetCellData(int row, int column)
+    public string? GetCellData(CellPointer pointer)
     {
-        return this[row, column];
+        return this[pointer.Row, pointer.Column];
     }
 }
