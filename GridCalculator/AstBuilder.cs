@@ -27,7 +27,7 @@ public class AstBuilder : CalcBaseVisitor<AstNode>
 
     public override Expression VisitUnaryExpression(CalcParser.UnaryExpressionContext context)
     {
-        var operation = "";
+        var operation = string.Empty;
         if (context.op != null)
         {
             operation = context.op.Text;

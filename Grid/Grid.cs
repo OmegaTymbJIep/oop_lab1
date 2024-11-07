@@ -9,6 +9,8 @@ public class Grid : IGrid
     /// Inner grid representation: row -> (col -> value)
     private readonly Dictionary<int, Dictionary<int, string>> _inner;
 
+    private int _nbColumns;
+
     /// The mapping of which cells reference which other cells.
     private readonly Dictionary<CellPointer, List<CellPointer>> _references = new();
 
@@ -46,6 +48,11 @@ public class Grid : IGrid
                 return;
             }
 
+            if (col >= _nbColumns)
+            {
+                _nbColumns = col + 1;
+            }
+
             _inner[row][col] = value;
         }
     }
@@ -74,13 +81,13 @@ public class Grid : IGrid
 
     public int Columns()
     {
-        return _inner.Values.Max(row => row.Keys.Max());
+        return _nbColumns;
     }
 
     public string GetCellData(CellPointer pointer)
     {
         var result = this[pointer.Row, pointer.Column];
-        return string.IsNullOrEmpty(result) ? "" : result;
+        return string.IsNullOrEmpty(result) ? string.Empty : result;
     }
 
     public async Task WriteToJsonStreamAsync(Stream stream)
@@ -115,15 +122,16 @@ public class Grid : IGrid
 
         _references.Clear();
         _dependents.Clear();
+        _inner.Clear();
+        _nbColumns = 0;
 
-        foreach (var row in data)
+        foreach (var (row, cols) in data)
         {
-            foreach (var col in row.Value)
+            foreach (var (col, value) in cols)
             {
-                var pointer = new CellPointer(col.Key, row.Key);
-                var value = col.Value;
+                var pointer = new CellPointer(col, row);
 
-                this[row.Key, col.Key] = value;
+                this[row, col] = value;
 
                 var usedInCells = CellPointer.FindPointers(value);
                 _references[pointer] = usedInCells;
@@ -131,7 +139,7 @@ public class Grid : IGrid
                 {
                     if (!_dependents.ContainsKey(usedCell))
                     {
-                        _dependents[usedCell] = new List<CellPointer>();
+                        _dependents[usedCell] = [];
                     }
                     _dependents[usedCell].Add(pointer);
                 }
@@ -143,7 +151,7 @@ public class Grid : IGrid
     {
         if (string.IsNullOrEmpty(value))
         {
-            value = "";
+            value = string.Empty;
 
             if (_references.TryGetValue(pointer, out var usedCells))
             {
@@ -177,7 +185,7 @@ public class Grid : IGrid
 
     public List<CellPointer> ClearCell(CellPointer pointer)
     {
-        return UpdateCell(pointer, "");
+        return UpdateCell(pointer, string.Empty);
     }
 
     public List<CellPointer> GetDependents(CellPointer pointer)

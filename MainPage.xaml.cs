@@ -32,19 +32,22 @@ public partial class MainPage
         _gridCalculator = new GridCalculator.GridCalculator(_exprGrid);
     }
 
-    private void CreateGrid()
+    private void CreateGrid(int nbColumns = MinColumnsNumber, int nbRows = MinRowsNumber)
     {
-        AddColumnsAndColumnLabels();
-        AddRowsAndCellEntries();
+        nbColumns = Math.Max(nbColumns, MinColumnsNumber);
+        nbRows = Math.Max(nbRows, MinRowsNumber);
+
+        AddColumnsAndColumnLabels(nbColumns);
+        AddRowsAndCellEntries(nbRows, nbColumns);
     }
 
-    private void AddColumnsAndColumnLabels()
+    private void AddColumnsAndColumnLabels(int nbColumns)
     {
-        for (var col = 0; col <= MinColumnsNumber; col++)
+        for (var col = 0; col <= nbColumns; col++)
         {
             Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
-            var label = NewLabel(CellPointer.NumberToColumn(col));
+            var label = NewLabel(CellPointer.NumberToColumn(col - 1));
 
             // Double click recognition for row width adjustment.
             var tapGesture = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
@@ -58,11 +61,11 @@ public partial class MainPage
         }
     }
 
-    private void AddRowsAndCellEntries()
+    private void AddRowsAndCellEntries(int nbRows, int nbColumns)
     {
         Grid.RowDefinitions.Add(new RowDefinition());
 
-        for (var row = 1; row <= MinRowsNumber; row++)
+        for (var row = 1; row <= nbRows; row++)
         {
             Grid.RowDefinitions.Add(new RowDefinition());
 
@@ -72,7 +75,7 @@ public partial class MainPage
             MauiGrid.SetColumn(label, 0);
             Grid.Children.Add(label);
 
-            for (var col = 1; col <= MinColumnsNumber; col++)
+            for (var col = 1; col <= nbColumns; col++)
             {
                 var entry = NewEmptyEntry();
 
@@ -115,8 +118,8 @@ public partial class MainPage
     {
         var entry = (Entry)sender;
 
-        var column = MauiGrid.GetColumn(entry);
-        var row = MauiGrid.GetRow(entry);
+        var column = MauiGrid.GetColumn(entry) - 1;
+        var row = MauiGrid.GetRow(entry) - 1;
         var pointer = new CellPointer(column, row);
 
         if (entry.Text.Contains(pointer.ToString()))
@@ -136,8 +139,8 @@ public partial class MainPage
     {
         var entry = (Entry)sender;
 
-        var column = MauiGrid.GetColumn(entry);
-        var row = MauiGrid.GetRow(entry);
+        var column = MauiGrid.GetColumn(entry) - 1;
+        var row = MauiGrid.GetRow(entry) - 1;
         var pointer = new CellPointer(column, row);
 
         entry.Text = _exprGrid.GetCellData(pointer);
@@ -210,7 +213,7 @@ public partial class MainPage
             var element = Grid.Children
                 .FirstOrDefault(child => Grid.GetRow(child) == lastRowIndex && Grid.GetColumn(child) == col);
 
-            var updatedCells =  _exprGrid.ClearCell(new CellPointer(col, lastRowIndex));
+            var updatedCells =  _exprGrid.ClearCell(new CellPointer(col, lastRowIndex - 1));
             RecUpdateViewFromList(updatedCells);
 
             if (element != null)
@@ -233,7 +236,7 @@ public partial class MainPage
             var element = Grid.Children
                 .FirstOrDefault(child => Grid.GetRow(child) == row && Grid.GetColumn(child) == lastColumnIndex);
 
-            var updatedCells = _exprGrid.ClearCell(new CellPointer(lastColumnIndex, row));
+            var updatedCells = _exprGrid.ClearCell(new CellPointer(lastColumnIndex - 1, row));
             RecUpdateViewFromList(updatedCells);
 
             if (element != null)
@@ -297,7 +300,7 @@ public partial class MainPage
     {
         var entry = new Entry
         {
-            Text = "",
+            Text = string.Empty,
             VerticalOptions = LayoutOptions.Center,
             HorizontalOptions = LayoutOptions.Fill,
             MinimumWidthRequest = 100
@@ -338,6 +341,17 @@ public partial class MainPage
 
     private void UpdateViewFromExprGrid()
     {
+        Grid.IsVisible = false;
+
+        Grid.Clear();
+        Grid.Children.Clear();
+        Grid.RowDefinitions.Clear();
+        Grid.ColumnDefinitions.Clear();
+
+        CreateGrid(_exprGrid.Columns(), _exprGrid.Rows());
+
+        Grid.IsVisible = true;
+
         foreach (var (pointer, expression) in _exprGrid)
         {
             UpdateCellView(pointer, expression);
@@ -347,13 +361,13 @@ public partial class MainPage
     private void UpdateCellView(CellPointer pointer, string expression)
     {
         if (Grid.Children.FirstOrDefault(child =>
-                Grid.GetRow(child) == pointer.Row &&
-                Grid.GetColumn(child) == pointer.Column
+                Grid.GetRow(child) == pointer.Row + 1 &&
+                Grid.GetColumn(child) == pointer.Column + 1
             ) is not Entry entry) return;
 
         if (string.IsNullOrEmpty(expression))
         {
-            entry.Text = "";
+            entry.Text = string.Empty;
             entry.BackgroundColor = Pallete.DefaultBackground;
             entry.TextColor = Colors.White;
             return;
@@ -378,8 +392,8 @@ public partial class MainPage
 
             if (ex is not DivideByZeroException)
             {
-                var columnString = CellPointer.NumberToColumn(pointer.Column);
-                DisplayAlert("Error", $"${columnString}${pointer.Row}: {ex.Message}", "OK");
+                var columnString = CellPointer.NumberToColumn(pointer.Column + 1);
+                DisplayAlert("Error", $"${columnString}${pointer.Row + 1}: {ex.Message}", "OK");
             }
         }
 

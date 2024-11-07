@@ -30,7 +30,7 @@ public partial class CellPointer
 
         var columnSubstring = rawValue.Substring(firstSep + 1, secondSep - firstSep - 1);
         Column = ColumnToNumber(columnSubstring);
-        Row = int.Parse(rawValue.Substring(secondSep + 1));
+        Row = int.Parse(rawValue.Substring(secondSep + 1)) - 1;
     }
 
     public override string ToString()
@@ -40,20 +40,22 @@ public partial class CellPointer
 
     public static int ColumnToNumber(string column)
     {
-        return column.Aggregate(0, (current, с) => current * 26 + (с - 'A' + 1));
+        return column.Aggregate(0, (current, c) => current * 26 + c - 'A' + 1) - 1;
     }
 
     public static string NumberToColumn(int columnNumber)
     {
         var column = string.Empty;
 
-        while (columnNumber > 0)
+        if (columnNumber < 0) return column;
+
+        do
         {
-            columnNumber--;
-            var letter = (char)('A' + (columnNumber % 26));
+            var letter = (char)('A' + columnNumber % 26);
             column = letter + column;
             columnNumber /= 26;
-        }
+            columnNumber--;
+        } while (columnNumber > 0);
 
         return column;
     }
