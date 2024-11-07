@@ -158,6 +158,11 @@ public class Grid : IGrid
         return _dependents.GetValueOrDefault(pointer, []);
     }
 
+    public List<CellPointer> ClearCell(CellPointer pointer)
+    {
+        return UpdateCell(pointer, "");
+    }
+
     public List<CellPointer> GetDependents(CellPointer pointer)
     {
         return _dependents.GetValueOrDefault(pointer, []);

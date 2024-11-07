@@ -42,6 +42,13 @@ namespace Lab1.Grid
         public List<CellPointer> UpdateCell(CellPointer pointer, string value);
 
         /// <summary>
+        /// Clears the cell at the specified pointer.
+        /// </summary>
+        /// <param name="pointer">The pointer to the cell to update.</param>
+        /// <returns>A list of pointers to cells that should be reevaluated.</returns>
+        public List<CellPointer> ClearCell(CellPointer pointer);
+
+        /// <summary>
         /// Retrieves a list of pointers to cells that depend on the specified cell.
         /// </summary>
         /// <param name="pointer">The pointer to the cell to retrieve dependents for.</param>
