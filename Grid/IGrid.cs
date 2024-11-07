@@ -27,7 +27,7 @@ namespace Lab1.Grid
         /// <summary>
         /// Writes the JSON grid representation to a stream.
         /// <param name="stream">The stream where to write the JSON grid representation.</param>
-        public void WriteToJsonStreamAsync(Stream stream);
+        public Task WriteToJsonStreamAsync(Stream stream);
 
         /// Reads JSON grid representtation from a stream and loads it into the grid.
         /// <param name="stream">The stream where to read the JSON grid representation.</param>

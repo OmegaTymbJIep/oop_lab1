@@ -6,7 +6,7 @@ using ExprGrid = Lab1.Grid.Grid;
 
 namespace Lab1;
 
-public partial class MainPage : ContentPage
+public partial class MainPage
 {
     private const string DefaultGridSaveFileName = "gridsave.json";
 
@@ -40,21 +40,16 @@ public partial class MainPage : ContentPage
 
     private void AddColumnsAndColumnLabels()
     {
-        for (var col = 0; col < MinColumnsNumber; col++)
+        for (var col = 0; col <= MinColumnsNumber; col++)
         {
             Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
-            if (col <= 0)
-            {
-                continue;
-            }
-
-            var label = NewLabel(GetColumnName(col));
+            var label = NewLabel(CellPointer.NumberToColumn(col));
 
             // Double click recognition for row width adjustment.
             var tapGesture = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
             var column = col;
-            tapGesture.Tapped += (_, _) => AdjustColumnWidth(column + 1);
+            tapGesture.Tapped += (_, _) => AdjustColumnWidth(column);
             label.GestureRecognizers.Add(tapGesture);
 
             MauiGrid.SetRow(label, 0);
@@ -65,40 +60,27 @@ public partial class MainPage : ContentPage
 
     private void AddRowsAndCellEntries()
     {
-        for (var row = 0; row < MinRowsNumber; row++)
+        Grid.RowDefinitions.Add(new RowDefinition());
+
+        for (var row = 1; row <= MinRowsNumber; row++)
         {
             Grid.RowDefinitions.Add(new RowDefinition());
 
-            var label = NewLabel((row + 1).ToString());
+            var label = NewLabel(row.ToString());
 
-            MauiGrid.SetRow(label, row + 1);
+            MauiGrid.SetRow(label, row);
             MauiGrid.SetColumn(label, 0);
             Grid.Children.Add(label);
 
-            for (int col = 0; col < MinColumnsNumber; col++)
+            for (var col = 1; col <= MinColumnsNumber; col++)
             {
                 var entry = NewEmptyEntry();
 
-                MauiGrid.SetRow(entry, row + 1);
-                MauiGrid.SetColumn(entry, col + 1);
+                MauiGrid.SetRow(entry, row);
+                MauiGrid.SetColumn(entry, col);
                 Grid.Children.Add(entry);
             }
         }
-    }
-
-    private static string GetColumnName(int colIndex)
-    {
-        var dividend = colIndex;
-        var columnName = string.Empty;
-
-        while (dividend > 0)
-        {
-            var modulo = (dividend - 1) % 26;
-            columnName = Convert.ToChar(65 + modulo) + columnName;
-            dividend = (dividend - modulo) / 26;
-        }
-
-        return columnName;
     }
 
     private void AdjustColumnWidth(int columnIndex)
@@ -180,7 +162,7 @@ public partial class MainPage : ContentPage
         if (string.IsNullOrEmpty(filePath)) return;
 
         var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
-        _exprGrid.WriteToJsonStreamAsync(fileStream);
+        await _exprGrid.WriteToJsonStreamAsync(fileStream);
 
         fileStream.Close();
     }
@@ -217,17 +199,19 @@ public partial class MainPage : ContentPage
 
     private void DeleteRowButton_Clicked(object sender, EventArgs e)
     {
-        if (Grid.RowDefinitions.Count <= MinRowsNumber)
-        {
-            return;
-        }
+        if (Grid.RowDefinitions.Count <= MinRowsNumber + 1) return;
 
         var lastRowIndex = Grid.RowDefinitions.Count - 1;
+
         Grid.RowDefinitions.RemoveAt(lastRowIndex);
+
         for (var col = 0; col < Grid.ColumnDefinitions.Count; col++)
         {
             var element = Grid.Children
                 .FirstOrDefault(child => Grid.GetRow(child) == lastRowIndex && Grid.GetColumn(child) == col);
+
+            var updatedCells =  _exprGrid.ClearCell(new CellPointer(col, lastRowIndex));
+            RecUpdateViewFromList(updatedCells);
 
             if (element != null)
             {
@@ -238,19 +222,19 @@ public partial class MainPage : ContentPage
 
     private void DeleteColumnButton_Clicked(object sender, EventArgs e)
     {
-        if (Grid.ColumnDefinitions.Count <= MinColumnsNumber)
-        {
-            return;
-        }
+        if (Grid.ColumnDefinitions.Count <= MinColumnsNumber + 1) return;
 
-        int lastColumnIndex = Grid.ColumnDefinitions.Count - 1;
+        var lastColumnIndex = Grid.ColumnDefinitions.Count - 1;
 
         Grid.ColumnDefinitions.RemoveAt(lastColumnIndex);
 
-        for (int row = 0; row < Grid.RowDefinitions.Count; row++)
+        for (var row = 0; row < Grid.RowDefinitions.Count; row++)
         {
             var element = Grid.Children
                 .FirstOrDefault(child => Grid.GetRow(child) == row && Grid.GetColumn(child) == lastColumnIndex);
+
+            var updatedCells = _exprGrid.ClearCell(new CellPointer(lastColumnIndex, row));
+            RecUpdateViewFromList(updatedCells);
 
             if (element != null)
             {
@@ -261,7 +245,7 @@ public partial class MainPage : ContentPage
 
     private void AddRowButton_Clicked(object sender, EventArgs e)
     {
-        int newRow = Grid.RowDefinitions.Count;
+        var newRow = Grid.RowDefinitions.Count;
 
         // Add a new row definition
         Grid.RowDefinitions.Add(new RowDefinition());
@@ -274,36 +258,36 @@ public partial class MainPage : ContentPage
         Grid.Children.Add(label);
 
         // Add entry cells for the new row
-        for (var col = 0; col < MinColumnsNumber; col++)
+        for (var col = 1; col < Grid.ColumnDefinitions.Count; col++)
         {
             var entry = NewEmptyEntry();
 
             MauiGrid.SetRow(entry, newRow);
-            MauiGrid.SetColumn(entry, col + 1);
+            MauiGrid.SetColumn(entry, col);
             Grid.Children.Add(entry);
         }
     }
 
     private void AddColumnButton_Clicked(object sender, EventArgs e)
     {
-        int newColumn = Grid.ColumnDefinitions.Count;
+        var newColumn = Grid.ColumnDefinitions.Count;
 
         // Add a new column definition
         Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
         // Add label for the column name
-        var label = NewLabel(GetColumnName(newColumn));
+        var label = NewLabel(CellPointer.NumberToColumn(newColumn));
 
         MauiGrid.SetRow(label, 0);
         MauiGrid.SetColumn(label, newColumn);
         Grid.Children.Add(label);
 
         // Add entry cells for the new column
-        for (int row = 0; row < MinRowsNumber; row++)
+        for (var row = 1; row < Grid.RowDefinitions.Count; row++)
         {
             var entry = NewEmptyEntry();
 
-            MauiGrid.SetRow(entry, row + 1);
+            MauiGrid.SetRow(entry, row);
             MauiGrid.SetColumn(entry, newColumn);
             Grid.Children.Add(entry);
         }

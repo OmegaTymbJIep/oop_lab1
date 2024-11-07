@@ -83,7 +83,7 @@ public class Grid : IGrid
         return string.IsNullOrEmpty(result) ? "" : result;
     }
 
-    public async void WriteToJsonStreamAsync(Stream stream)
+    public async Task WriteToJsonStreamAsync(Stream stream)
     {
         var nonEmptyCells = new Dictionary<int, Dictionary<int, string>>();
 
@@ -113,11 +113,28 @@ public class Grid : IGrid
             return;
         }
 
+        _references.Clear();
+        _dependents.Clear();
+
         foreach (var row in data)
         {
             foreach (var col in row.Value)
             {
-                this[row.Key, col.Key] = col.Value;
+                var pointer = new CellPointer(col.Key, row.Key);
+                var value = col.Value;
+
+                this[row.Key, col.Key] = value;
+
+                var usedInCells = CellPointer.FindPointers(value);
+                _references[pointer] = usedInCells;
+                foreach (var usedCell in usedInCells)
+                {
+                    if (!_dependents.ContainsKey(usedCell))
+                    {
+                        _dependents[usedCell] = new List<CellPointer>();
+                    }
+                    _dependents[usedCell].Add(pointer);
+                }
             }
         }
     }
