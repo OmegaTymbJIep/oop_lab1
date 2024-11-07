@@ -5,7 +5,8 @@ using Lab1.GridCalculator.AST;
 using Lab1.GridCalculator.AST.Expressions;
 using Lab1.GridCalculator.AST.Terms;
 using Lab1.GridCalculator.Parser;
-using CellPointer = Lab1.GridCalculator.AST.Terms.CellPointer;
+using CellPointer = Lab1.Grid.CellPointer;
+using CellPointerTerm = Lab1.GridCalculator.AST.Terms.CellPointer;
 
 namespace Lab1.GridCalculator;
 
@@ -13,6 +14,8 @@ public class GridCalculator(IGrid grid)
 {
     public double Evaluate(string input)
     {
+        if (string.IsNullOrEmpty(input)) return 0;
+
         var rawExpr = ParseExpression(input);
 
         AstNode ast;
@@ -30,7 +33,17 @@ public class GridCalculator(IGrid grid)
         return (double)EvaluateExpression(expr);
     }
 
-    private CalcParser.ExpressionContext ParseExpression(string input)
+    public double EvaluateForCell(string input, CellPointer selfPointer)
+    {
+        if (input.Contains(selfPointer.ToString()))
+        {
+            throw new InvalidOperationException("Self-reference detected");
+        }
+
+        return Evaluate(input);
+    }
+
+    private static CalcParser.ExpressionContext ParseExpression(string input)
     {
         var inputStream = new AntlrInputStream(input);
         var lexer = new CalcLexer(inputStream);
@@ -61,7 +74,7 @@ public class GridCalculator(IGrid grid)
             case UnaryOp unaryOp:
                 return EvaluateUnaryOp(unaryOp);
 
-            case CellPointer cellPointer:
+            case CellPointerTerm cellPointer:
                 return EvaluateCellPointer(cellPointer);
 
             case BinaryOp binaryOp:
@@ -71,15 +84,9 @@ public class GridCalculator(IGrid grid)
         throw new NotSupportedException(expression.GetType().ToString());
     }
 
-    private object EvaluateCellPointer(CellPointer cellPointer)
+    private object EvaluateCellPointer(CellPointerTerm cellPointer)
     {
-        var cellData = grid.GetCellData(cellPointer.Pointer);
-        if (string.IsNullOrEmpty(cellData))
-        {
-            throw new InvalidOperationException($"Cell {cellPointer} is empty");
-        }
-
-        return Evaluate(cellData);
+        return Evaluate(grid.GetCellData(cellPointer.Pointer));
     }
 
     private object EvaluateUnaryOp(UnaryOp unaryOp)

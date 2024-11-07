@@ -13,8 +13,15 @@ public partial class MainPage : ContentPage
     private const int MinColumnsNumber = 22;
     private const int MinRowsNumber = 22;
 
-    private readonly ExprGrid _exprGrid;
+    private readonly IGrid _exprGrid;
     private readonly GridCalculator.GridCalculator _gridCalculator;
+
+    internal static class Pallete
+    {
+        public static readonly Color ErrorBackground = Color.FromRgb(75, 49, 55);
+        public static readonly Color ErrorText = Color.FromRgb(254, 148, 148);
+        public static readonly Color DefaultBackground = Color.FromRgb(31, 31, 31);
+    }
 
     public MainPage()
     {
@@ -86,7 +93,7 @@ public partial class MainPage : ContentPage
 
         while (dividend > 0)
         {
-            int modulo = (dividend - 1) % 26;
+            var modulo = (dividend - 1) % 26;
             columnName = Convert.ToChar(65 + modulo) + columnName;
             dividend = (dividend - modulo) / 26;
         }
@@ -128,31 +135,19 @@ public partial class MainPage : ContentPage
 
         var column = MauiGrid.GetColumn(entry);
         var row = MauiGrid.GetRow(entry);
+        var pointer = new CellPointer(column, row);
 
-        if (string.IsNullOrEmpty(entry.Text))
+        if (entry.Text.Contains(pointer.ToString()))
         {
-            _exprGrid[row, column] = null;
+            entry.Text = _exprGrid.GetCellData(pointer);
+            DisplayAlert("Error", "Self-reference detected", "OK");
             return;
         }
 
-        try
-        {
-            var result = _gridCalculator.Evaluate(entry.Text);
+        var updatedCells = _exprGrid.UpdateCell(pointer, entry.Text);
 
-            _exprGrid[row, column] = entry.Text;
-
-            if (result % 1 == 0)
-            {
-                entry.Text = ((Int128)result).ToString();
-                return;
-            }
-
-            entry.Text = result.ToString(CultureInfo.InvariantCulture);
-        }
-        catch (Exception ex)
-        {
-            DisplayAlert("Error", ex.Message, "OK");
-        }
+        UpdateCellView(pointer, entry.Text);
+        RecUpdateViewFromList(updatedCells);
     }
 
     private void Entry_Focused(object sender, FocusEventArgs e)
@@ -161,14 +156,9 @@ public partial class MainPage : ContentPage
 
         var column = MauiGrid.GetColumn(entry);
         var row = MauiGrid.GetRow(entry);
+        var pointer = new CellPointer(column, row);
 
-        var rawExpression = _exprGrid[row, column];
-        if (string.IsNullOrEmpty(rawExpression))
-        {
-            return;
-        }
-
-        entry.Text = rawExpression;
+        entry.Text = _exprGrid.GetCellData(pointer);
     }
 
     private void CalculateButton_Clicked(object sender, EventArgs e)
@@ -207,7 +197,7 @@ public partial class MainPage : ContentPage
 
         fileStream.Close();
 
-        UpdateViewFromInnerGrid();
+        UpdateViewFromExprGrid();
     }
 
     private async void ExitButton_Clicked(object sender, EventArgs e)
@@ -353,35 +343,62 @@ public partial class MainPage : ContentPage
         };
     }
 
-    private void UpdateViewFromInnerGrid()
+    private void RecUpdateViewFromList(List<CellPointer> pointers)
     {
-        foreach (var (row, column, expression) in _exprGrid)
+        foreach (var pointer in pointers)
         {
-            if (string.IsNullOrEmpty(expression))
-            {
-                continue;
-            }
-
-            if (Grid.Children.FirstOrDefault(child =>
-                    Grid.GetRow(child) == row && Grid.GetColumn(child) == column
-                ) is not Entry entry) continue;
-
-            var value = expression;
-            try
-            {
-                var expressionResult = _gridCalculator.Evaluate(expression);
-
-                value = expressionResult % 1 == 0 ?
-                    ((Int128)expressionResult).ToString() :
-                    expressionResult.ToString(CultureInfo.InvariantCulture);
-            }
-            catch (Exception ex)
-            {
-                var columnString = CellPointer.NumberToColumn(column);
-                DisplayAlert("Error", $"${columnString}${row}: {ex.Message}", "OK");
-            }
-
-            entry.Text = value;
+            UpdateCellView(pointer, _exprGrid.GetCellData(pointer));
+            RecUpdateViewFromList(_exprGrid.GetDependents(pointer));
         }
+    }
+
+    private void UpdateViewFromExprGrid()
+    {
+        foreach (var (pointer, expression) in _exprGrid)
+        {
+            UpdateCellView(pointer, expression);
+        }
+    }
+
+    private void UpdateCellView(CellPointer pointer, string expression)
+    {
+        if (Grid.Children.FirstOrDefault(child =>
+                Grid.GetRow(child) == pointer.Row &&
+                Grid.GetColumn(child) == pointer.Column
+            ) is not Entry entry) return;
+
+        if (string.IsNullOrEmpty(expression))
+        {
+            entry.Text = "";
+            entry.BackgroundColor = Pallete.DefaultBackground;
+            entry.TextColor = Colors.White;
+            return;
+        }
+
+        var value = expression;
+        try
+        {
+            var expressionResult = _gridCalculator.EvaluateForCell(expression, pointer);
+
+            value = expressionResult % 1 == 0
+                ? ((Int128)expressionResult).ToString()
+                : expressionResult.ToString(CultureInfo.InvariantCulture);
+
+            entry.BackgroundColor = Pallete.DefaultBackground;
+            entry.TextColor = Colors.White;
+        }
+        catch (Exception ex)
+        {
+            entry.BackgroundColor = Pallete.ErrorBackground;
+            entry.TextColor = Pallete.ErrorText;
+
+            if (ex is not DivideByZeroException)
+            {
+                var columnString = CellPointer.NumberToColumn(pointer.Column);
+                DisplayAlert("Error", $"${columnString}${pointer.Row}: {ex.Message}", "OK");
+            }
+        }
+
+        entry.Text = value;
     }
 }

@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace Lab1.Grid;
 
 /// Represents a two-dimensional, dynamically resizable grid structure that stores data in a row and column format.
-public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
+public class Grid : IGrid
 {
     /// Inner grid representation: row -> (col -> value)
     private readonly Dictionary<int, Dictionary<int, string>> _inner;
@@ -30,7 +30,7 @@ public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
     /// <param name="row">The zero-based index of the row.</param>
     /// <param name="col">The zero-based index of the column.</param>
     /// <returns>The data stored at the specified cell as a string, or <c>null</c> if the cell is empty.</returns>
-    public string? this[int row, int col]
+    private string? this[int row, int col]
     {
         get => !_inner.TryGetValue(row, out var value) ? null : value.GetValueOrDefault(col);
         set
@@ -50,8 +50,39 @@ public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
         }
     }
 
-    /// Writes the JSON grid representation to a stream.
-    /// <param name="stream">The stream where to write the JSON grid representation.</param>
+    // IEnumerable implementation
+
+    public IEnumerator<(CellPointer pointer, string Value)> GetEnumerator()
+    {
+        foreach (var (row, columns) in _inner)
+        {
+            foreach (var (column, value) in columns)
+            {
+                yield return (new CellPointer(column, row), value);
+            }
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    // IGrid implementation
+
+    public int Rows()
+    {
+        return _inner.Count;
+    }
+
+    public int Columns()
+    {
+        return _inner.Values.Max(row => row.Keys.Max());
+    }
+
+    public string GetCellData(CellPointer pointer)
+    {
+        var result = this[pointer.Row, pointer.Column];
+        return string.IsNullOrEmpty(result) ? "" : result;
+    }
+
     public async void WriteToJsonStreamAsync(Stream stream)
     {
         var nonEmptyCells = new Dictionary<int, Dictionary<int, string>>();
@@ -73,8 +104,6 @@ public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
         await JsonSerializer.SerializeAsync(stream, nonEmptyCells, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    /// Reads JSON grid representtation from a stream and loads it into the grid.
-    /// <param name="stream">The stream where to read the JSON grid representation.</param>
     public async Task ReadFromJsonStreamAsync(Stream stream)
     {
         var data = await JsonSerializer.DeserializeAsync<Dictionary<int, Dictionary<int, string>>>(stream);
@@ -93,38 +122,44 @@ public class Grid : IGrid, IEnumerable<(int Row, int Column, string Value)>
         }
     }
 
-    // IEnumerable implementation
-
-    public IEnumerator<(int Row, int Column, string Value)> GetEnumerator()
+    public List<CellPointer> UpdateCell(CellPointer pointer, string value)
     {
-        foreach (var rowPair in _inner)
+        if (string.IsNullOrEmpty(value))
         {
-            var row = rowPair.Key;
-            foreach (var colPair in rowPair.Value)
+            value = "";
+
+            if (_references.TryGetValue(pointer, out var usedCells))
             {
-                int column = colPair.Key;
-                string value = colPair.Value;
-                yield return (row, column, value);
+                foreach (var usedCell in usedCells)
+                {
+                    _dependents[usedCell].Remove(pointer);
+                }
+
+                _references.Remove(pointer);
             }
         }
+
+        this[pointer.Row, pointer.Column] = value;
+
+        var usedInCells = CellPointer.FindPointers(value);
+
+        _references[pointer] = usedInCells;
+
+        foreach (var usedCell in usedInCells)
+        {
+            if (!_dependents.ContainsKey(usedCell))
+            {
+                _dependents[usedCell] = [];
+            }
+
+            _dependents[usedCell].Add(pointer);
+        }
+
+        return _dependents.GetValueOrDefault(pointer, []);
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    // IGrid implementation
-
-    public int Rows()
+    public List<CellPointer> GetDependents(CellPointer pointer)
     {
-        return _inner.Count;
-    }
-
-    public int Columns()
-    {
-        return _inner.Values.Max(row => row.Keys.Max());
-    }
-
-    public string? GetCellData(CellPointer pointer)
-    {
-        return this[pointer.Row, pointer.Column];
+        return _dependents.GetValueOrDefault(pointer, []);
     }
 }

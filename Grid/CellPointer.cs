@@ -12,8 +12,8 @@ public partial class CellPointer
         Row = row;
     }
 
-    public int Column { get; protected set; }
-    public int Row { get; protected set; }
+    public int Column { get; }
+    public int Row { get; }
 
     public CellPointer(string rawValue)
     {
@@ -60,15 +60,26 @@ public partial class CellPointer
 
     public static List<CellPointer> FindPointers(string expression)
     {
-        var pointers = new List<CellPointer>();
-        var matches = MyRegex().Matches(expression);
-        foreach (Match match in matches)
-        {
-            pointers.Add(new CellPointer(match.Value));
-        }
-        return pointers;
+        return CellPointerRegex()
+            .Matches(expression)
+            .Select(match => new CellPointer(match.Value))
+            .ToList();
     }
 
     [GeneratedRegex(@"\$[A-Z]+\$\d+")]
-    private static partial Regex MyRegex();
+    private static partial Regex CellPointerRegex();
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is CellPointer other)
+        {
+            return Column == other.Column && Row == other.Row;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Column, Row);
+    }
 }
