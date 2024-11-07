@@ -166,7 +166,7 @@ public partial class MainPage : ContentPage
         try
         {
             var result = _gridCalculator.Evaluate(TextInput.Text);
-            Console.WriteLine(result);
+            DisplayAlert("Result", result.ToString(CultureInfo.InvariantCulture), "OK");
         }
         catch (Exception ex)
         {
@@ -222,9 +222,9 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        int lastRowIndex = Grid.RowDefinitions.Count - 1;
+        var lastRowIndex = Grid.RowDefinitions.Count - 1;
         Grid.RowDefinitions.RemoveAt(lastRowIndex);
-        for (int col = 0; col < Grid.ColumnDefinitions.Count; col++)
+        for (var col = 0; col < Grid.ColumnDefinitions.Count; col++)
         {
             var element = Grid.Children
                 .FirstOrDefault(child => Grid.GetRow(child) == lastRowIndex && Grid.GetColumn(child) == col);
