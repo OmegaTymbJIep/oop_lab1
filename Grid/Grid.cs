@@ -10,6 +10,7 @@ public class Grid : IGrid
     private readonly Dictionary<int, Dictionary<int, string>> _inner;
 
     private int _nbColumns;
+    private int _nbRows;
 
     /// The mapping of which cells reference which other cells.
     private readonly Dictionary<CellPointer, List<CellPointer>> _references = new();
@@ -53,6 +54,11 @@ public class Grid : IGrid
                 _nbColumns = col + 1;
             }
 
+            if (row >= _nbRows)
+            {
+                _nbRows = row + 1;
+            }
+
             _inner[row][col] = value;
         }
     }
@@ -76,7 +82,7 @@ public class Grid : IGrid
 
     public int Rows()
     {
-        return _inner.Count;
+        return _nbRows;
     }
 
     public int Columns()
@@ -124,6 +130,7 @@ public class Grid : IGrid
         _dependents.Clear();
         _inner.Clear();
         _nbColumns = 0;
+        _nbRows = 0;
 
         foreach (var (row, cols) in data)
         {
