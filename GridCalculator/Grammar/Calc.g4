@@ -9,21 +9,34 @@ additionExpression
    ;
 
 multiplicationExpression
-   : unaryExpression ((op=('*'|'/'|'%')) unaryExpression)*
+   : powerExpression ((op=('*'|'/'|'%')) powerExpression)*
+   ;
+
+powerExpression
+   : unaryExpression ( '**' unaryExpression)*
    ;
 
 unaryExpression
-   : op=('+'|'-')* term
+   : (op=('+'|'-'))* term
    ;
 
 term
    : '(' expression ')'
    | NUMBER
    | CellPointer
+   | functionCall
+   ;
+
+functionCall
+   : (INC | DEC) '(' expression ')'
    ;
 
 NUMBER: [0-9]+ ('.' [0-9]+)?;
 
 CellPointer: '$' [A-Za-z]+ '$' [1-9] [0-9]* ;
+
+INC: 'inc';
+
+DEC: 'dec';
 
 WS: [ \t\r\n]+ -> skip ;

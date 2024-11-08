@@ -19,11 +19,14 @@ public class GridCalculator(IGrid grid)
         var rawExpr = ParseExpression(input);
 
         AstNode ast;
-        try {
+        try
+        {
             ast = rawExpr.Accept(new AstBuilder());
-        } catch (ParseCanceledException e) {
+        }
+        catch (ParseCanceledException e)
+        {
             throw new InvalidOperationException(e.Message);
-        };
+        }
 
         if (ast is not Expression expr)
         {
@@ -79,9 +82,13 @@ public class GridCalculator(IGrid grid)
 
             case BinaryOp binaryOp:
                 return EvaluateBinaryOp(binaryOp);
-        }
 
-        throw new NotSupportedException(expression.GetType().ToString());
+            case FunctionCall functionCall:
+                return EvaluateFunctionCall(functionCall);
+
+            default:
+                throw new NotSupportedException($"Expression type '{expression.GetType()}' is not supported");
+        }
     }
 
     private object EvaluateCellPointer(CellPointerTerm cellPointer)
@@ -91,14 +98,16 @@ public class GridCalculator(IGrid grid)
 
     private object EvaluateUnaryOp(UnaryOp unaryOp)
     {
-        var operand = EvaluateExpression(unaryOp.Operand);
+        var operand = (double)EvaluateExpression(unaryOp.Operand);
 
         return unaryOp.Operator switch
         {
             "" => operand,
-            "-" => -(double)operand,
-            "+" => +(double)operand,
-            _ => throw new NotSupportedException(unaryOp.Operator)
+            "-" => -operand,
+            "+" => +operand,
+            "--" => operand - 1,
+            "++" => operand + 1,
+            _ => throw new NotSupportedException($"Unary operator '{unaryOp.Operator}' is not supported")
         };
     }
 
@@ -115,19 +124,36 @@ public class GridCalculator(IGrid grid)
         if (binaryOp.Operator is "/" or "%" && (double)right == 0)
             throw new DivideByZeroException();
 
-        if(left is double r && right is double l)
+        if (left is double l && right is double r)
             return binaryOp.Operator switch
             {
-                "+" => r + l,
-                "-" => r - l,
-                "*" => r * l,
-                "/" => r / l,
-                "%" => r % l,
-                _ => throw new NotSupportedException(binaryOp.Operator)
+                "+" => l + r,
+                "-" => l - r,
+                "*" => l * r,
+                "/" => l / r,
+                "%" => l % r,
+                "**" => Math.Pow(l, r),
+                _ => throw new NotSupportedException($"Binary operator '{binaryOp.Operator}' is not supported")
             };
 
-        throw new NotSupportedException($"Operator {binaryOp.Operator} is not supported " +
+        throw new NotSupportedException($"Operator '{binaryOp.Operator}' is not supported " +
                                         $"for types {left.GetType()} and {right.GetType()}");
+    }
+
+    private object EvaluateFunctionCall(FunctionCall functionCall)
+    {
+        var argumentValue = EvaluateExpression(functionCall.Argument);
+        if (argumentValue is not double arg)
+        {
+            throw new InvalidOperationException("Function argument must evaluate to a number");
+        }
+
+        return functionCall.Name switch
+        {
+            FunctionCall.Inc => arg + 1,
+            FunctionCall.Dec => arg - 1,
+            _ => throw new NotSupportedException($"Function '{functionCall.Name}' is not supported")
+        };
     }
 }
 

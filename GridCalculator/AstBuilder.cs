@@ -22,19 +22,35 @@ public class AstBuilder : CalcBaseVisitor<AstNode>
 
     public override Expression VisitMultiplicationExpression(CalcParser.MultiplicationExpressionContext context)
     {
+        return VisitBinaryExpression(context.powerExpression(), context.children);
+    }
+
+    public override Expression VisitPowerExpression(CalcParser.PowerExpressionContext context)
+    {
         return VisitBinaryExpression(context.unaryExpression(), context.children);
     }
 
     public override Expression VisitUnaryExpression(CalcParser.UnaryExpressionContext context)
     {
-        var operation = string.Empty;
-        if (context.op != null)
+        var operations = new List<string>();
+
+        for (var i = 0; i < context.children.Count - 1; i++)
         {
-            operation = context.op.Text;
+            var child = context.children[i];
+            if (child is not ITerminalNode terminalNode) continue;
+
+            operations.Add(terminalNode.GetText());
         }
+
         var term = VisitTerm(context.term());
 
-        return new UnaryOp(term, operation);
+        // Apply all unary operations in reverse order (for cases like ++--a).
+        foreach (var operation in operations.AsEnumerable().Reverse())
+        {
+            term = new UnaryOp(term, operation);
+        }
+
+        return term;
     }
 
     public override Expression VisitTerm(CalcParser.TermContext context)
@@ -54,7 +70,20 @@ public class AstBuilder : CalcBaseVisitor<AstNode>
             return new CellPointer(context.CellPointer().GetText());
         }
 
+        if (context.functionCall() != null)
+        {
+            return VisitFunctionCall(context.functionCall());
+        }
+
         throw new NotSupportedException($"Term type not supported: {context.GetText()}");
+    }
+
+    public override Expression VisitFunctionCall(CalcParser.FunctionCallContext context)
+    {
+        var functionName = context.GetChild(0).GetText();
+        var argument = VisitExpression(context.expression());
+
+        return new FunctionCall(functionName, argument);
     }
 
     private Expression VisitBinaryExpression<T>(IEnumerable<T> expressionsContext, IList<IParseTree> children)

@@ -51,6 +51,12 @@ public interface ICalcVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMultiplicationExpression([NotNull] CalcParser.MultiplicationExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CalcParser.powerExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPowerExpression([NotNull] CalcParser.PowerExpressionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CalcParser.unaryExpression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -62,5 +68,11 @@ public interface ICalcVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitTerm([NotNull] CalcParser.TermContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CalcParser.functionCall"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFunctionCall([NotNull] CalcParser.FunctionCallContext context);
 }
 } // namespace Lab1.GridCalculator.Parser

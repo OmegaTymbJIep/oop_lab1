@@ -52,7 +52,7 @@ public partial class MainPage
             // Double click recognition for row width adjustment.
             var tapGesture = new TapGestureRecognizer { NumberOfTapsRequired = 2 };
             var column = col;
-            tapGesture.Tapped += (_, _) => AdjustColumnWidth(column);
+            tapGesture.Tapped += (_, _) => AdjustColumnWidth(column-1);
             label.GestureRecognizers.Add(tapGesture);
 
             MauiGrid.SetRow(label, 0);
@@ -102,10 +102,7 @@ public partial class MainPage
             maxWidth = Math.Max(maxWidth, entryWidth);
         }
 
-        if (columnIndex < Grid.ColumnDefinitions.Count)
-        {
-            Grid.ColumnDefinitions[columnIndex].Width = new GridLength(maxWidth, GridUnitType.Absolute);
-        }
+        Grid.ColumnDefinitions[columnIndex].Width = new GridLength(maxWidth, GridUnitType.Absolute);
 
         // Trigger a layout update to immediately apply the new widths.
         Grid.Dispatcher.Dispatch(() => {
