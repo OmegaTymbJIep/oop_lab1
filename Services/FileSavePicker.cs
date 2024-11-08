@@ -1,12 +1,13 @@
 using Foundation;
+using Lab1.Core.Services;
 using UIKit;
 using static UIKit.UIApplication;
 
-namespace Lab1.Services.FileSavePicker;
+namespace Lab1.Services;
 
-public static class FileSavePicker
+public class FileSavePicker: IFileSavePicker
 {
-    public static Task<string> PickAsync(string defaultFileName)
+    public Task<string> PickAsync(string defaultFileName)
     {
         var tcs = new TaskCompletionSource<string>();
 

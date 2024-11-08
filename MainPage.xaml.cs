@@ -1,8 +1,9 @@
 ﻿using System.Globalization;
-using Lab1.Grid;
-using Lab1.Services.FileSavePicker;
+using Lab1.Core.Grid;
+using Lab1.Core.Services;
+using Lab1.Services;
 using MauiGrid = Microsoft.Maui.Controls.Grid;
-using ExprGrid = Lab1.Grid.Grid;
+using ExprGrid = Lab1.Core.Grid.Grid;
 
 namespace Lab1;
 
@@ -14,7 +15,9 @@ public partial class MainPage
     private const int MinRowsNumber = 22;
 
     private readonly IGrid _exprGrid;
-    private readonly GridCalculator.GridCalculator _gridCalculator;
+    private readonly Core.GridCalculator.GridCalculator _gridCalculator;
+
+    private readonly IFileSavePicker _fileSavePicker = new FileSavePicker();
 
     internal static class Pallete
     {
@@ -29,7 +32,7 @@ public partial class MainPage
         CreateGrid();
 
         _exprGrid = new ExprGrid(MinRowsNumber, MinColumnsNumber);
-        _gridCalculator = new GridCalculator.GridCalculator(_exprGrid);
+        _gridCalculator = new Core.GridCalculator.GridCalculator(_exprGrid);
     }
 
     private void CreateGrid(int nbColumns = MinColumnsNumber, int nbRows = MinRowsNumber)
@@ -158,7 +161,7 @@ public partial class MainPage
 
     private async void SaveButton_Clicked(object sender, EventArgs e)
     {
-        var filePath = await FileSavePicker.PickAsync(DefaultGridSaveFileName);
+        var filePath = await _fileSavePicker.PickAsync(DefaultGridSaveFileName);
         if (string.IsNullOrEmpty(filePath)) return;
 
         var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
