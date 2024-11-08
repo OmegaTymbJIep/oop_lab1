@@ -1,6 +1,8 @@
 bin/
 obj/
 
+.user
+
 *.dev
 *.dev.*
 dev.*
