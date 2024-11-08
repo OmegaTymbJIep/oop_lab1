@@ -122,7 +122,8 @@ public partial class MainPage
         var row = MauiGrid.GetRow(entry) - 1;
         var pointer = new CellPointer(column, row);
 
-        if (entry.Text.Contains(pointer.ToString()))
+        var pointers = CellPointer.FindPointers(entry.Text);
+        if (pointers.Contains(pointer))
         {
             entry.Text = _exprGrid.GetCellData(pointer);
             DisplayAlert("Error", "Self-reference detected", "OK");

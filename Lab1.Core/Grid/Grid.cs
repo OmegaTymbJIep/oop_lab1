@@ -13,10 +13,10 @@ public class Grid : IGrid
     private int _nbRows;
 
     /// The mapping of which cells reference which other cells.
-    private readonly Dictionary<Core.Grid.CellPointer, List<Core.Grid.CellPointer>> _references = new();
+    private readonly Dictionary<CellPointer, List<CellPointer>> _references = new();
 
     /// The mapping of which cells are referenced by which other cells.
-    private readonly Dictionary<Core.Grid.CellPointer, List<Core.Grid.CellPointer>> _dependents = new();
+    private readonly Dictionary<CellPointer, List<CellPointer>> _dependents = new();
 
     /// Initializes a new instance of the <see cref="Grid"/> class, allocating the specified number of rows and columns.
     public Grid(int rows, int columns)
@@ -65,13 +65,13 @@ public class Grid : IGrid
 
     // IEnumerable implementation
 
-    public IEnumerator<(Core.Grid.CellPointer pointer, string Value)> GetEnumerator()
+    public IEnumerator<(CellPointer pointer, string Value)> GetEnumerator()
     {
         foreach (var (row, columns) in _inner)
         {
             foreach (var (column, value) in columns)
             {
-                yield return (new Core.Grid.CellPointer(column, row), value);
+                yield return (new CellPointer(column, row), value);
             }
         }
     }
@@ -90,7 +90,7 @@ public class Grid : IGrid
         return _nbColumns;
     }
 
-    public string GetCellData(Core.Grid.CellPointer pointer)
+    public string GetCellData(CellPointer pointer)
     {
         var result = this[pointer.Row, pointer.Column];
         return string.IsNullOrEmpty(result) ? string.Empty : result;
@@ -136,11 +136,11 @@ public class Grid : IGrid
         {
             foreach (var (col, value) in cols)
             {
-                var pointer = new Core.Grid.CellPointer(col, row);
+                var pointer = new CellPointer(col, row);
 
                 this[row, col] = value;
 
-                var usedInCells = Core.Grid.CellPointer.FindPointers(value);
+                var usedInCells = CellPointer.FindPointers(value);
                 _references[pointer] = usedInCells;
                 foreach (var usedCell in usedInCells)
                 {
@@ -154,7 +154,7 @@ public class Grid : IGrid
         }
     }
 
-    public List<Core.Grid.CellPointer> UpdateCell(Core.Grid.CellPointer pointer, string value)
+    public List<CellPointer> UpdateCell(CellPointer pointer, string value)
     {
         if (string.IsNullOrEmpty(value))
         {
@@ -162,7 +162,7 @@ public class Grid : IGrid
 
             if (_references.TryGetValue(pointer, out var usedCells))
             {
-                foreach (var usedCell in usedCells)
+                foreach (var usedCell in usedCells.Where(usedCell => !Equals(usedCell, pointer)))
                 {
                     _dependents[usedCell].Remove(pointer);
                 }
@@ -173,7 +173,8 @@ public class Grid : IGrid
 
         this[pointer.Row, pointer.Column] = value;
 
-        var usedInCells = Core.Grid.CellPointer.FindPointers(value);
+        var usedInCells = CellPointer.FindPointers(value);
+        usedInCells.Remove(pointer);
 
         _references[pointer] = usedInCells;
 
@@ -190,12 +191,12 @@ public class Grid : IGrid
         return _dependents.GetValueOrDefault(pointer, []);
     }
 
-    public List<Core.Grid.CellPointer> ClearCell(Core.Grid.CellPointer pointer)
+    public List<CellPointer> ClearCell(CellPointer pointer)
     {
         return UpdateCell(pointer, string.Empty);
     }
 
-    public List<Core.Grid.CellPointer> GetDependents(Core.Grid.CellPointer pointer)
+    public List<CellPointer> GetDependents(CellPointer pointer)
     {
         return _dependents.GetValueOrDefault(pointer, []);
     }

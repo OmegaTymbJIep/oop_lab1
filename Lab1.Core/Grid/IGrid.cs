@@ -1,7 +1,7 @@
 namespace Lab1.Core.Grid
 {
     /// Represents a grid structure that provides access to its rows, columns, and cell data.
-    public interface IGrid : IEnumerable<(Core.Grid.CellPointer pointer, string Value)>
+    public interface IGrid : IEnumerable<(CellPointer pointer, string Value)>
     {
         /// <summary>
         /// Gets the total number of rows in the grid.
@@ -22,7 +22,7 @@ namespace Lab1.Core.Grid
         /// <returns>
         /// The data stored at the specified cell as a string, or <c>null</c> if the cell is empty.
         /// </returns>
-        public string GetCellData(Core.Grid.CellPointer pointer);
+        public string GetCellData(CellPointer pointer);
 
         /// <summary>
         /// Writes the JSON grid representation to a stream.
@@ -39,20 +39,20 @@ namespace Lab1.Core.Grid
         /// <param name="pointer">The pointer to the cell to update.</param>
         /// <param name="value">The new value to set for the cell.</param>
         /// <returns>A list of pointers to cells that should be reevaluated.</returns>
-        public List<Core.Grid.CellPointer> UpdateCell(Core.Grid.CellPointer pointer, string value);
+        public List<CellPointer> UpdateCell(CellPointer pointer, string value);
 
         /// <summary>
         /// Clears the cell at the specified pointer.
         /// </summary>
         /// <param name="pointer">The pointer to the cell to update.</param>
         /// <returns>A list of pointers to cells that should be reevaluated.</returns>
-        public List<Core.Grid.CellPointer> ClearCell(Core.Grid.CellPointer pointer);
+        public List<CellPointer> ClearCell(CellPointer pointer);
 
         /// <summary>
         /// Retrieves a list of pointers to cells that depend on the specified cell.
         /// </summary>
         /// <param name="pointer">The pointer to the cell to retrieve dependents for.</param>
         /// <returns>A list of pointers to cells that depend on the specified cell.</returns>
-        public List<Core.Grid.CellPointer> GetDependents(Core.Grid.CellPointer pointer);
+        public List<CellPointer> GetDependents(CellPointer pointer);
     }
 }

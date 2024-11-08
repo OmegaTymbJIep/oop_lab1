@@ -31,12 +31,12 @@
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
   &lt;Assembly Path="/Users/omegatymbjiep/.dotnet/packs/Microsoft.MacCatalyst.Ref.net8.0_18.0/18.0.8303/ref/net8.0/Microsoft.MacCatalyst.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=22d554ed_002D27c2_002D4e4e_002Daf93_002D8588a64d264b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GridCalculatorTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=22d554ed_002D27c2_002D4e4e_002Daf93_002D8588a64d264b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GridCalculatorTests #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::FA1F4686-E613-4203-9E09-165A3CBBE168::net8.0::Lab1.Tests.GridCalculatorTests&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a48af991_002Daa55_002D4417_002D99e7_002Da2a8ded0835d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GridCalculatorTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a48af991_002Daa55_002D4417_002D99e7_002Da2a8ded0835d/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GridCalculatorTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::FA1F4686-E613-4203-9E09-165A3CBBE168::net8.0::Lab1.Tests.GridCalculatorTests&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
