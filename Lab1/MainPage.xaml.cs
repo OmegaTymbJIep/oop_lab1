@@ -122,14 +122,6 @@ public partial class MainPage
         var row = MauiGrid.GetRow(entry) - 1;
         var pointer = new CellPointer(column, row);
 
-        var pointers = CellPointer.FindPointers(entry.Text);
-        if (pointers.Contains(pointer))
-        {
-            entry.Text = _exprGrid.GetCellData(pointer);
-            DisplayAlert("Error", "Self-reference detected", "OK");
-            return;
-        }
-
         var updatedCells = _exprGrid.UpdateCell(pointer, entry.Text);
 
         UpdateCellView(pointer, entry.Text);
@@ -377,7 +369,7 @@ public partial class MainPage
         var value = expression;
         try
         {
-            var expressionResult = _gridCalculator.EvaluateForCell(expression, pointer);
+            var expressionResult = _gridCalculator.Evaluate(expression);
 
             value = expressionResult % 1 == 0
                 ? ((Int128)expressionResult).ToString()
@@ -393,7 +385,7 @@ public partial class MainPage
 
             if (ex is not DivideByZeroException)
             {
-                var columnString = CellPointer.NumberToColumn(pointer.Column + 1);
+                var columnString = CellPointer.NumberToColumn(pointer.Column);
                 DisplayAlert("Error", $"${columnString}${pointer.Row + 1}: {ex.Message}", "OK");
             }
         }

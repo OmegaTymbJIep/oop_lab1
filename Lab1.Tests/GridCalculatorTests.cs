@@ -156,9 +156,22 @@ public class GridCalculatorTests
     [Test]
     public void Evaluate_SelfReference_ThrowsException()
     {
-        var selfPointer = new CellPointer("$A$1");
+        _mockGrid.SetCellData(new CellPointer("$A$1"), "$A$1 + 5");
+
         Assert.Throws<InvalidOperationException>(() =>
-            _calculator.EvaluateForCell("$A$1 + 5", selfPointer));
+            _calculator.Evaluate("$A$1 + 5"));
+    }
+
+    [Test]
+    public void Evaluate_JumpSelfReference_ThrowsException()
+    {
+        _mockGrid.SetCellData(new CellPointer("$A$1"), "$D$1 + 5");
+        _mockGrid.SetCellData(new CellPointer("$B$1"), "$A$1");
+        _mockGrid.SetCellData(new CellPointer("$C$1"), "$B$1 + 5");
+        _mockGrid.SetCellData(new CellPointer("$D$1"), "$C$1");
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _calculator.Evaluate("$D$1"));
     }
 }
 

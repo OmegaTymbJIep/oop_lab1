@@ -14,6 +14,11 @@ public class GridCalculator(IGrid grid)
 {
     public double Evaluate(string input)
     {
+        return EvaluateWithStack(input, []);
+    }
+
+    private double EvaluateWithStack(string input, List<CellPointer> stackTrace)
+    {
         if (string.IsNullOrEmpty(input)) return 0;
 
         var rawExpr = ParseExpression(input);
@@ -33,18 +38,7 @@ public class GridCalculator(IGrid grid)
             throw new NotSupportedException("Invalid expression");
         }
 
-        return (double)EvaluateExpression(expr);
-    }
-
-    public double EvaluateForCell(string input, CellPointer selfPointer)
-    {
-        var pointers = CellPointer.FindPointers(input);
-        if (pointers.Contains(selfPointer))
-        {
-            throw new InvalidOperationException("Self-reference detected");
-        }
-
-        return Evaluate(input);
+        return (double)EvaluateExpression(expr, stackTrace);
     }
 
     private static CalcParser.ExpressionContext ParseExpression(string input)
@@ -68,7 +62,7 @@ public class GridCalculator(IGrid grid)
         return parser.expression();
     }
 
-    private object EvaluateExpression(Expression expression)
+    private object EvaluateExpression(Expression expression, List<CellPointer> stackTrace)
     {
         switch (expression)
         {
@@ -76,30 +70,36 @@ public class GridCalculator(IGrid grid)
                 return number.Value;
 
             case UnaryOp unaryOp:
-                return EvaluateUnaryOp(unaryOp);
+                return EvaluateUnaryOp(unaryOp, stackTrace);
 
             case CellPointerTerm cellPointer:
-                return EvaluateCellPointer(cellPointer);
+                return EvaluateCellPointer(cellPointer, stackTrace);
 
             case BinaryOp binaryOp:
-                return EvaluateBinaryOp(binaryOp);
+                return EvaluateBinaryOp(binaryOp, stackTrace);
 
             case FunctionCall functionCall:
-                return EvaluateFunctionCall(functionCall);
+                return EvaluateFunctionCall(functionCall, stackTrace);
 
             default:
                 throw new NotSupportedException($"Expression type '{expression.GetType()}' is not supported");
         }
     }
 
-    private object EvaluateCellPointer(CellPointerTerm cellPointer)
+    private object EvaluateCellPointer(CellPointerTerm cellPointer, List<CellPointer> stackTrace)
     {
-        return Evaluate(grid.GetCellData(cellPointer.Pointer));
+        if (stackTrace.Contains(cellPointer.Pointer))
+        {
+            throw new InvalidOperationException("Circular reference detected");
+        }
+
+        stackTrace.Add(cellPointer.Pointer);
+        return EvaluateWithStack(grid.GetCellData(cellPointer.Pointer), stackTrace);
     }
 
-    private object EvaluateUnaryOp(UnaryOp unaryOp)
+    private object EvaluateUnaryOp(UnaryOp unaryOp, List<CellPointer> stackTrace)
     {
-        var operand = (double)EvaluateExpression(unaryOp.Operand);
+        var operand = (double)EvaluateExpression(unaryOp.Operand, stackTrace);
 
         return unaryOp.Operator switch
         {
@@ -112,16 +112,16 @@ public class GridCalculator(IGrid grid)
         };
     }
 
-    private object EvaluateBinaryOp(BinaryOp binaryOp)
+    private object EvaluateBinaryOp(BinaryOp binaryOp, List<CellPointer> stackTrace)
     {
-        var left = EvaluateExpression(binaryOp.Left);
+        var left = EvaluateExpression(binaryOp.Left, stackTrace);
 
         if (binaryOp.Right == null)
         {
             return left;
         }
 
-        var right = EvaluateExpression(binaryOp.Right);
+        var right = EvaluateExpression(binaryOp.Right, stackTrace);
         if (binaryOp.Operator is "/" or "%" && (double)right == 0)
             throw new DivideByZeroException();
 
@@ -141,9 +141,9 @@ public class GridCalculator(IGrid grid)
                                         $"for types {left.GetType()} and {right.GetType()}");
     }
 
-    private object EvaluateFunctionCall(FunctionCall functionCall)
+    private object EvaluateFunctionCall(FunctionCall functionCall, List<CellPointer> stackTrace)
     {
-        var argumentValue = EvaluateExpression(functionCall.Argument);
+        var argumentValue = EvaluateExpression(functionCall.Argument, stackTrace);
         if (argumentValue is not double arg)
         {
             throw new InvalidOperationException("Function argument must evaluate to a number");
