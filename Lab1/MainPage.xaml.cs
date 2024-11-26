@@ -11,8 +11,8 @@ public partial class MainPage
 {
     private const string DefaultGridSaveFileName = "gridsave.json";
 
-    private const int MinColumnsNumber = 22;
-    private const int MinRowsNumber = 22;
+    private const int MinColumnsNumber = 26;
+    private const int MinRowsNumber = 26;
 
     private readonly IGrid _exprGrid;
     private readonly Core.GridCalculator.GridCalculator _gridCalculator;
@@ -124,7 +124,10 @@ public partial class MainPage
 
         var updatedCells = _exprGrid.UpdateCell(pointer, entry.Text);
 
-        UpdateCellView(pointer, entry.Text);
+        if (!UpdateCellView(pointer, entry.Text))
+        {
+            return;
+        }
         RecUpdateViewFromList(updatedCells);
     }
 
@@ -272,7 +275,7 @@ public partial class MainPage
         Grid.ColumnDefinitions.Add(new ColumnDefinition());
 
         // Add label for the column name
-        var label = NewLabel(CellPointer.NumberToColumn(newColumn));
+        var label = NewLabel(CellPointer.NumberToColumn(newColumn-1));
 
         MauiGrid.SetRow(label, 0);
         MauiGrid.SetColumn(label, newColumn);
@@ -327,7 +330,10 @@ public partial class MainPage
     {
         foreach (var pointer in pointers)
         {
-            UpdateCellView(pointer, _exprGrid.GetCellData(pointer));
+            if (!UpdateCellView(pointer, _exprGrid.GetCellData(pointer)))
+            {
+                return;
+            }
             RecUpdateViewFromList(_exprGrid.GetDependents(pointer));
         }
     }
@@ -347,26 +353,30 @@ public partial class MainPage
 
         foreach (var (pointer, expression) in _exprGrid)
         {
-            UpdateCellView(pointer, expression);
+            if (!UpdateCellView(pointer, expression))
+            {
+                return;
+            }
         }
     }
 
-    private void UpdateCellView(CellPointer pointer, string expression)
+    private bool UpdateCellView(CellPointer pointer, string expression)
     {
         if (Grid.Children.FirstOrDefault(child =>
                 Grid.GetRow(child) == pointer.Row + 1 &&
                 Grid.GetColumn(child) == pointer.Column + 1
-            ) is not Entry entry) return;
+            ) is not Entry entry) return true;
 
         if (string.IsNullOrEmpty(expression))
         {
             entry.Text = string.Empty;
             entry.BackgroundColor = Pallete.DefaultBackground;
             entry.TextColor = Colors.White;
-            return;
+            return true;
         }
 
         var value = expression;
+        var result = false;
         try
         {
             var expressionResult = _gridCalculator.Evaluate(expression);
@@ -377,6 +387,7 @@ public partial class MainPage
 
             entry.BackgroundColor = Pallete.DefaultBackground;
             entry.TextColor = Colors.White;
+            result = true;
         }
         catch (Exception ex)
         {
@@ -391,5 +402,6 @@ public partial class MainPage
         }
 
         entry.Text = value;
+        return result;
     }
 }

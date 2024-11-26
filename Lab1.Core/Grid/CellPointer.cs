@@ -49,13 +49,13 @@ public partial class CellPointer
 
         if (columnNumber < 0) return column;
 
-        do
+        while (columnNumber >= 0)
         {
             var letter = (char)('A' + columnNumber % 26);
             column = letter + column;
             columnNumber /= 26;
             columnNumber--;
-        } while (columnNumber > 0);
+        }
 
         return column;
     }

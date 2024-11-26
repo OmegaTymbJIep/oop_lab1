@@ -94,7 +94,10 @@ public class GridCalculator(IGrid grid)
         }
 
         stackTrace.Add(cellPointer.Pointer);
-        return EvaluateWithStack(grid.GetCellData(cellPointer.Pointer), stackTrace);
+        var result = EvaluateWithStack(grid.GetCellData(cellPointer.Pointer), stackTrace);
+        stackTrace.Remove(cellPointer.Pointer);
+
+        return result;
     }
 
     private object EvaluateUnaryOp(UnaryOp unaryOp, List<CellPointer> stackTrace)

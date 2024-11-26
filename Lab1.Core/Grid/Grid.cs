@@ -173,19 +173,31 @@ public class Grid : IGrid
 
         this[pointer.Row, pointer.Column] = value;
 
-        var usedInCells = CellPointer.FindPointers(value);
-        usedInCells.Remove(pointer);
+        var newReferences = CellPointer.FindPointers(value);
+        newReferences.Remove(pointer);
 
-        _references[pointer] = usedInCells;
-
-        foreach (var usedCell in usedInCells)
+        var oldReferences = _references.GetValueOrDefault(pointer, []);
+        foreach (var oldReference in oldReferences)
         {
-            if (!_dependents.ContainsKey(usedCell))
+            if (!newReferences.Contains(oldReference))
             {
-                _dependents[usedCell] = [];
+                _dependents[oldReference].Remove(pointer);
+            }
+        }
+
+        _references[pointer] = newReferences;
+
+        foreach (var reference in newReferences)
+        {
+            if (!_dependents.ContainsKey(reference))
+            {
+                _dependents[reference] = [];
             }
 
-            _dependents[usedCell].Add(pointer);
+            if (!_dependents[reference].Contains(pointer))
+            {
+                _dependents[reference].Add(pointer);
+            }
         }
 
         return _dependents.GetValueOrDefault(pointer, []);
